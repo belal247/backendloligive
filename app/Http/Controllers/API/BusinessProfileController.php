@@ -163,8 +163,8 @@ class BusinessProfileController extends Controller
 
         // Validate the request
         $validator = Validator::make($request->all(), [
-            'business_name' => 'required|string|max:255',
-            'business_registration_number' => 'required|string|max:255',
+            'organization_name' => 'required|string|max:255',
+            'organization_registration_number' => 'required|string|max:255',
             'street' => 'required|string|max:255',
             'street_line2' => 'nullable|string|max:255',
             'city' => 'required|string|max:255',
@@ -200,7 +200,7 @@ class BusinessProfileController extends Controller
             // Handle registration document upload
             $registrationFile = $request->file('registration_document');
             $registrationFileName = time() . '_registration_' . $registrationFile->getClientOriginalName();
-            $registrationFilePath = $registrationFile->storeAs('business_documents', $registrationFileName, 'public');
+            $registrationFilePath = $registrationFile->storeAs('organization_documents', $registrationFileName, 'public');
             $registrationPublicUrl = asset('storage/' . $registrationFilePath);
 
             // Handle ID document upload
@@ -213,8 +213,8 @@ class BusinessProfileController extends Controller
             $businessProfile = BusinessProfile::where('user_id', $user->id)->first();
 
             $profileData = [
-                'business_name' => $request->business_name,
-                'business_registration_number' => $request->business_registration_number,
+                'organization_name' => $request->organization_name,
+                'organization_registration_number' => $request->organization_registration_number,
                 'street' => $request->street,
                 'street_line2' => $request->street_line2,
                 'city' => $request->city,
@@ -251,21 +251,21 @@ class BusinessProfileController extends Controller
                 
                 // Update existing profile
                 $businessProfile->update($profileData);
-                $message = 'Business profile updated successfully';
+                $message = 'Organization profile updated successfully';
                 $statusCode = 200;
             } else {
                 // Create new profile
                 $profileData['user_id'] = $user->id;
                 $businessProfile = BusinessProfile::create($profileData);
-                $message = 'Business profile created successfully';
+                $message = 'Organization profile created successfully';
                 $statusCode = 201;
             }
 
             // Update user's business verification status to PENDING
-            $user->update(['business_verified' => 'PENDING']);
+            $user->update(['organization_verified' => 'PENDING']);
 
             // MAIL CODE
-            $accountHolderFirstName = 'Customer';
+            /* $accountHolderFirstName = 'Customer';
             if ($request->account_holder_first_name && !empty($request->account_holder_first_name)) 
             {
                 $accountHolderFirstName = $request->account_holder_first_name;
@@ -274,11 +274,11 @@ class BusinessProfileController extends Controller
             $message = "signup";
             $subject = "Thank You for Choosing CardNest – Your Application is Under Review";
 
-            $email1 = Mail::to($toEmail)->send(new welcomemail($message, $subject, $accountHolderFirstName));
+            $email1 = Mail::to($toEmail)->send(new welcomemail($message, $subject, $accountHolderFirstName)); */
             // MAIL CODE
 
             // MAIL 2 CODE
-            $pendingProfiles  = BusinessProfile::with('user')
+            /* $pendingProfiles  = BusinessProfile::with('user')
                     ->whereHas('user', function($query) {
                         $query->where('business_verified', 'PENDING');
                     })
@@ -302,7 +302,7 @@ class BusinessProfileController extends Controller
             $message = "admin";
             $subject = "Action Required – New Pending Customer/Business Applications for Review";
 
-            $email2 = Mail::to($toEmail)->cc($moreuser)->send(new adminemail($message, $subject, $admin));
+            $email2 = Mail::to($toEmail)->cc($moreuser)->send(new adminemail($message, $subject, $admin)); */
             // MAIL 2 CODE
 
             return response()->json([

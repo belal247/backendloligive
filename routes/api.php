@@ -12,6 +12,7 @@ use App\Http\Controllers\API\ScanController;
 use App\Http\Controllers\API\PaymentDetailController;
 use App\Http\Controllers\API\FeatureController;
 use App\Http\Controllers\API\SuperAdminDocController;
+use App\Http\Controllers\Api\TransactionController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,8 +40,14 @@ Route::post('reset-otp', [AuthController::class, 'resetOtp']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('check-user-exists', [AuthController::class, 'checkUserExists']);
 
+// Create new transaction
+Route::post('transaction/create', [TransactionController::class, 'store']);
+
+// Get specific transaction
+Route::post('transaction/show', [TransactionController::class, 'show']);
+
 // Business Profile routes
-Route::prefix('business-profile')->group(function () {
+Route::prefix('organization-profile')->group(function () {
     Route::post('/', [BusinessProfileController::class, 'store']);
     Route::get('/', [BusinessProfileController::class, 'index']); // List documents for review
     Route::get('/approved', [BusinessProfileController::class, 'business_verified_approved']); // List documents for Approved Business
