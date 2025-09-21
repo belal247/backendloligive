@@ -17,6 +17,35 @@ use App\Mail\adminemail;
 
 class BusinessProfileController extends Controller
 {
+    // List business profiles filtered by org_key_id
+    public function get_organiation_by_org_key_id(Request $request)
+    {
+        try {
+            $request->validate([
+                'org_key_id' => 'required|string'
+            ]);
+
+            $orgKeyId = $request->input('org_key_id');
+
+            $profiles = BusinessProfile::whereHas('user', function($query) use ($orgKeyId) {
+                    $query->where('org_key_id', $orgKeyId);
+                })
+                ->with('user') // Eager load the user relationship
+                ->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $profiles
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to fetch documents',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
     // List all business profiles pending review
     public function index()
     {

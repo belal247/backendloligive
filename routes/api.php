@@ -49,6 +49,7 @@ Route::post('transaction/show', [TransactionController::class, 'show']);
 // Business Profile routes
 Route::prefix('organization-profile')->group(function () {
     Route::post('/', [BusinessProfileController::class, 'store']);
+    Route::get('/get-by-org-key-id', [BusinessProfileController::class, 'get_organiation_by_org_key_id']);
     Route::get('/', [BusinessProfileController::class, 'index']); // List documents for review
     Route::get('/approved', [BusinessProfileController::class, 'business_verified_approved']); // List documents for Approved Business
     Route::post('/decision', [BusinessProfileController::class, 'updateStatus']); // Approve/Reject
