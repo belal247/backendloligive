@@ -45,7 +45,7 @@ class BusinessProfileController extends Controller
             ], 500);
         }
     }
-    
+
     // List all business profiles pending review
     public function index()
     {
@@ -98,9 +98,8 @@ class BusinessProfileController extends Controller
     public function updateStatus(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|integer|exists:users,id',
-            'status' => 'required|string|in:APPROVED,PENDING,INCOMPLETE',
-            'reason' => 'required_if:status,INCOMPLETE|string|nullable'
+            'org_key_id' => 'required',
+            'status' => 'required|string|in:APPROVED,REJECT,DEACTIVATE'
         ]);
 
         if ($validator->fails()) {
@@ -113,7 +112,7 @@ class BusinessProfileController extends Controller
 
         try {
             // Find the user with their current business profile
-            $user = User::with('businessProfile')->find($request->user_id);
+            $user = User::where('org_key_id', $request->org_key_id)->first();
             
             if (!$user) {
                 return response()->json([
@@ -123,35 +122,35 @@ class BusinessProfileController extends Controller
             }
 
             // Get previous status
-            $previousStatus = $user->business_verified;
+            $previousStatus = $user->organization_verified;
             $newStatus = $request->status;
 
-            if ($newStatus === 'APPROVED')
-            {   
+            /* if ($newStatus === 'APPROVED')
+            { */   
                 // Check for account_holder_first_name with multiple fallbacks
-                $accountHolderFirstName = 'Customer'; // Default string
+                /* $accountHolderFirstName = 'Customer'; // Default string
                 
                 if ($user->businessProfile && !empty($user->businessProfile->account_holder_first_name)) {
                     $accountHolderFirstName = $user->businessProfile->account_holder_first_name;
-                }
+                } */
 
                 // MAIL CODE
-                $toEmail = $user->email;
+                /* $toEmail = $user->email;
                 $message = "approved";
                 $subject = "Welcome to CardNest – Your Application Has Been Approved!";
 
-                $request = Mail::to($toEmail)->send(new approvedemail($message, $subject, $accountHolderFirstName));
+                $request = Mail::to($toEmail)->send(new approvedemail($message, $subject, $accountHolderFirstName)); */
                 // MAIL CODE    
-            }
+           // }
 
             // Update the status and reason if provided
-            $user->business_verified = $newStatus;
+            $user->organization_verified = $newStatus;
             
-            if ($newStatus === 'INCOMPLETE') {
+            /* if ($newStatus === 'INCOMPLETE') {
                 $user->verification_reason = $request->reason;
             } else {
                 $user->verification_reason = null; // Clear reason if status changes from INCOMPLETE
-            }
+            } */
             
             $user->save();
 
@@ -159,11 +158,10 @@ class BusinessProfileController extends Controller
                 'status' => true,
                 'message' => $this->getStatusMessage($newStatus),
                 'data' => [
-                    'user_id' => $user->id,
+                    'org_key_id' => $user->org_key_id,
                     'previous_status' => $previousStatus,
                     'new_status' => $newStatus,
                     'status_changed' => ($previousStatus !== $newStatus),
-                    'reason' => $newStatus === 'INCOMPLETE' ? $request->reason : null,
                     'business_profile' => $user->businessProfile
                 ]
             ]);
@@ -415,9 +413,9 @@ class BusinessProfileController extends Controller
     protected function getStatusMessage($status)
     {
         $messages = [
-            'APPROVED' => 'Business documents approved successfully',
-            'PENDING' => 'Business verification status set to pending',
-            'INCOMPLETE' => 'Business documents marked as incomplete'
+            'APPROVED' => 'Organization documents approved successfully',
+            'REJECT' => 'Organization verification status set to reject',
+            'DEACTIVATE' => 'Organization verification status set to deactivate'
         ];
         
         return $messages[$status] ?? 'Status updated';

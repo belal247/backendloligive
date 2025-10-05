@@ -19,7 +19,8 @@ class User extends Authenticatable implements JWTSubject
         //'otp_verified',
         'organization_verified',
         'verification_reason',
-        'org_key_id'
+        'org_key_id',
+        'sub_domain_url'
         /* 'aes_key',
         'role', // Add this line,
         'on_trial',

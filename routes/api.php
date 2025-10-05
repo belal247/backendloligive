@@ -18,6 +18,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
+Route::get('/orgs', [OrganizationController::class, 'index']);
+
+Route::post('/companies', [CompanyController::class, 'store']);
+Route::get('/companies/{org_key_id}', [CompanyController::class, 'show']);
+
+// Generate QR code
+Route::post('/generate', [QrCodeController::class, 'generate']);
+
+// GENERATE REPORT
+Route::post('/transaction/report', [TransactionController::class, 'generateReport']);
+
+// Create new transaction
+Route::post('transaction/create', [TransactionController::class, 'store']);
+
+// Get specific transaction
+Route::post('transaction/show', [TransactionController::class, 'show']);
+
+// Get specific transaction
+Route::get('transaction/all', [TransactionController::class, 'all']);
+
 Route::post('contact-us', [ContactUsController::class, 'store']);
 Route::get('/check-storage', function () {
     // Check if storage link exists
@@ -48,11 +68,11 @@ Route::post('transaction/show', [TransactionController::class, 'show']);
 
 // Business Profile routes
 Route::prefix('organization-profile')->group(function () {
+    Route::post('/decision', [BusinessProfileController::class, 'updateStatus']); // Approve/Reject
     Route::post('/', [BusinessProfileController::class, 'store']);
     Route::get('/get-by-org-key-id', [BusinessProfileController::class, 'get_organiation_by_org_key_id']);
     Route::get('/', [BusinessProfileController::class, 'index']); // List documents for review
     Route::get('/approved', [BusinessProfileController::class, 'business_verified_approved']); // List documents for Approved Business
-    Route::post('/decision', [BusinessProfileController::class, 'updateStatus']); // Approve/Reject
     Route::get('/business-verification-status', [BusinessProfileController::class, 'getStatus']);
 });
 
