@@ -12,7 +12,10 @@ use App\Http\Controllers\API\ScanController;
 use App\Http\Controllers\API\PaymentDetailController;
 use App\Http\Controllers\API\FeatureController;
 use App\Http\Controllers\API\SuperAdminDocController;
+use App\Http\Controllers\Api\QrCodeController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\OrganizationController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
