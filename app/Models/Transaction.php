@@ -11,10 +11,13 @@ class Transaction extends Model
 
     protected $fillable = [
         'org_key_id',
-        'amount',
+        'tid',
         'name',
-        'purpose_reason',
-        'comment'
+        'amount',
+        'bank_fee',
+        'amount_received',
+        'time',
+        'payment_method'
     ];
 
     protected $casts = [

@@ -97,10 +97,12 @@ class TransactionController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'org_key_id' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0.01',
+            'tid' => 'required|string|max:255|unique:transactions,tid',
             'name' => 'required|string|max:255',
-            'purpose_reason' => 'required|string|max:500',
-            'comment' => 'nullable|string|max:1000'
+            'amount' => 'required|numeric|min:0.01',
+            'bankFee' => 'nullable|numeric|min:0',
+            'amountReceived' => 'nullable|numeric|min:0',
+            'paymentMethod' => 'required|string|max:100'
         ]);
 
         if ($validator->fails()) {
@@ -113,10 +115,12 @@ class TransactionController extends Controller
 
         try {
             $orgKeyId = $request->input('org_key_id');
-            $amount = $request->input('amount');
+            $tid = $request->input('tid');
             $name = $request->input('name');
-            $purposeReason = $request->input('purpose_reason');
-            $comment = $request->input('comment');
+            $amount = $request->input('amount');
+            $bankFee = $request->input('bankFee', 0);
+            $amountReceived = $request->input('amountReceived', $amount - $bankFee);
+            $paymentMethod = $request->input('paymentMethod');
 
             // Verify if org_key_id exists in users table (optional)
             $userExists = User::where('org_key_id', $orgKeyId)->exists();
@@ -131,10 +135,12 @@ class TransactionController extends Controller
             // Create transaction
             $transaction = Transaction::create([
                 'org_key_id' => $orgKeyId,
-                'amount' => $amount,
+                'tid' => $tid,
                 'name' => $name,
-                'purpose_reason' => $purposeReason,
-                'comment' => $comment
+                'amount' => $amount,
+                'bank_fee' => $bankFee,
+                'amount_received' => $amountReceived,
+                'payment_method' => $paymentMethod
             ]);
 
             return response()->json([
@@ -142,12 +148,13 @@ class TransactionController extends Controller
                 'message' => 'Transaction created successfully',
                 'data' => [
                     'org_key_id' => $transaction->org_key_id,
-                    'amount' => $transaction->amount,
+                    'tid' => $transaction->tid,
                     'name' => $transaction->name,
-                    'purpose_reason' => $transaction->purpose_reason,
-                    'comment' => $transaction->comment,
+                    'amount' => $transaction->amount,
+                    'bankFee' => $transaction->bank_fee,
+                    'amountReceived' => $transaction->amount_received,
+                    'paymentMethod' => $transaction->payment_method,
                     'created_at' => $transaction->created_at,
-                    'id' => $transaction->id
                 ]
             ], 201);
 
