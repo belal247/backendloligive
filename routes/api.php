@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
 Route::get('/orgs', [OrganizationController::class, 'index']);
 
 Route::post('/companies', [CompanyController::class, 'store']);
-Route::get('/companies/{org_key_id}', [CompanyController::class, 'show']);
+Route::post('/companies/show', [CompanyController::class, 'show']);
 
 // Generate QR code
 Route::post('/generate', [QrCodeController::class, 'generate']);

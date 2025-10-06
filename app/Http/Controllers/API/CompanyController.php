@@ -130,9 +130,23 @@ class CompanyController extends Controller
     /**
      * Get company by org_key_id
      */
-    public function show($org_key_id): JsonResponse
+    public function show(Request $request): JsonResponse
     {
         try {
+            $validator = Validator::make($request->all(), [
+                'org_key_id' => 'required|string|max:255'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation errors',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $org_key_id = $request->input('org_key_id');
+            
             // Find company by org_key_id
             $company = Company::where('org_key_id', $org_key_id)->first();
 
@@ -147,16 +161,20 @@ class CompanyController extends Controller
                 'success' => true,
                 'message' => 'Company retrieved successfully.',
                 'data' => [
-                    'org_key_id' => $company->org_key_id,
+                    'orgId' => $company->org_key_id,
                     'name' => $company->name,
                     'alias' => $company->alias,
-                    'logo_url' => $company->logo ? Storage::disk('public')->url($company->logo) : null,
-                    'description' => $company->description,
-                    'video' => $company->video,
+                    'logo' => $company->logo,
+                    'mainImage' => $company->main_image,
+                    'welcomeText' => $company->welcome_text,
+                    'testimonyText' => $company->testimony_text,
+                    'aboutUsText' => $company->about_us_text,
+                    'aboutUsImage' => $company->about_us_image,
+                    'donationMessage' => $company->donation_message,
+                    'videoUrl' => $company->video_url,
+                    'contactInfo' => $company->contact_info,
                     'purpose_reason' => $company->purpose_reason,
-                    'location' => $company->location,
-                    'created_at' => $company->created_at->toISOString(),
-                    'updated_at' => $company->updated_at->toISOString(),
+                    'updatedAt' => $company->updated_at->toISOString(),
                 ]
             ], 200);
 
