@@ -15,15 +15,23 @@ class CompanyController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
             'org_key_id' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'alias' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120', // 5MB max
-            'description' => 'nullable|string',
-            'video' => 'nullable|url',
+            'logo' => 'nullable|url|max:2000',
+            'mainImage' => 'nullable|url|max:2000',
+            'welcomeText' => 'nullable|string|max:1000',
+            'testimonyText' => 'nullable|string|max:1000',
+            'aboutUsText' => 'nullable|string|max:2000',
+            'aboutUsImage' => 'nullable|url|max:2000',
+            'donationMessage' => 'nullable|string|max:1000',
+            'videoUrl' => 'nullable|url|max:2000',
+            'contactInfo' => 'nullable|array',
+            'contactInfo.address' => 'nullable|string|max:500',
+            'contactInfo.phone' => 'nullable|string|max:20',
+            'contactInfo.email' => 'nullable|email|max:255',
             'purpose_reason' => 'nullable|array',
-            'purpose_reason.*' => 'string|max:500',
-            'location' => 'nullable|string|max:255',
+            'purpose_reason.*' => 'string|max:500'
         ]);
 
         if ($validator->fails()) {
@@ -35,41 +43,29 @@ class CompanyController extends Controller
         }
 
         try {
-            $logoPath = null;
             $action = 'created'; // Track whether we're creating or updating
             
-            // Handle logo upload with custom filename
-            if ($request->hasFile('logo')) {
-                $file = $request->file('logo');
-                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $logoPath = $file->storeAs('logos', $fileName, 'public');
-            }
-
-            // Check if company exists with the same org_key_id
+            // Check if company exists with the same orgId
             $company = Company::where('org_key_id', $request->org_key_id)->first();
 
             if ($company) {
                 // Update existing company
                 $action = 'updated';
                 
-                // Delete old logo if new logo is uploaded
-                if ($request->hasFile('logo') && $company->logo) {
-                    Storage::disk('public')->delete($company->logo);
-                }
-
                 $updateData = [
                     'name' => $request->name,
                     'alias' => $request->alias,
-                    'description' => $request->description,
-                    'video' => $request->video,
+                    'logo' => $request->logo,
+                    'main_image' => $request->mainImage,
+                    'welcome_text' => $request->welcomeText,
+                    'testimony_text' => $request->testimonyText,
+                    'about_us_text' => $request->aboutUsText,
+                    'about_us_image' => $request->aboutUsImage,
+                    'donation_message' => $request->donationMessage,
+                    'video_url' => $request->videoUrl,
+                    'contact_info' => $request->contactInfo,
                     'purpose_reason' => $request->purpose_reason,
-                    'location' => $request->location,
                 ];
-
-                // Only update logo path if a new logo was uploaded
-                if ($request->hasFile('logo')) {
-                    $updateData['logo'] = $logoPath;
-                }
 
                 $company->update($updateData);
 
@@ -79,13 +75,21 @@ class CompanyController extends Controller
                     'org_key_id' => $request->org_key_id,
                     'name' => $request->name,
                     'alias' => $request->alias,
-                    'logo' => $logoPath,
-                    'description' => $request->description,
-                    'video' => $request->video,
+                    'logo' => $request->logo,
+                    'main_image' => $request->mainImage,
+                    'welcome_text' => $request->welcomeText,
+                    'testimony_text' => $request->testimonyText,
+                    'about_us_text' => $request->aboutUsText,
+                    'about_us_image' => $request->aboutUsImage,
+                    'donation_message' => $request->donationMessage,
+                    'video_url' => $request->videoUrl,
+                    'contact_info' => $request->contactInfo,
                     'purpose_reason' => $request->purpose_reason,
-                    'location' => $request->location,
                 ]);
             }
+
+            // Refresh the company instance to get updated data
+            $company->refresh();
 
             return response()->json([
                 'success' => true,
@@ -94,26 +98,31 @@ class CompanyController extends Controller
                     'org_key_id' => $company->org_key_id,
                     'name' => $company->name,
                     'alias' => $company->alias,
-                    'logo_url' => $company->logo ? Storage::disk('public')->url($company->logo) : null,
-                    'description' => $company->description,
-                    'video' => $company->video,
+                    'logo' => $company->logo,
+                    'mainImage' => $company->main_image,
+                    'welcomeText' => $company->welcome_text,
+                    'testimonyText' => $company->testimony_text,
+                    'aboutUsText' => $company->about_us_text,
+                    'aboutUsImage' => $company->about_us_image,
+                    'donationMessage' => $company->donation_message,
+                    'videoUrl' => $company->video_url,
+                    'contactInfo' => $company->contact_info,
                     'purpose_reason' => $company->purpose_reason,
-                    'location' => $company->location,
-                    'created_at' => $company->created_at->toISOString(),
-                    'updated_at' => $company->updated_at->toISOString(),
+                    'createdAt' => $company->created_at->toISOString(),
+                    'updatedAt' => $company->updated_at->toISOString(),
                 ]
             ], $action === 'created' ? 201 : 200);
 
         } catch (\Exception $e) {
-            // Delete uploaded file if operation fails
-            if (isset($logoPath)) {
-                Storage::disk('public')->delete($logoPath);
-            }
+            \Log::error('Company store error: ' . $e->getMessage(), [
+                'org_key_id' => $request->org_key_id,
+                'exception' => $e
+            ]);
             
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to process company.',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
     }

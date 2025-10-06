@@ -11,18 +11,27 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
         'org_key_id',
+        'name',
         'alias',
         'logo',
-        'description',
         'video',
+        'main_image',
+        'welcome_text',
+        'testimony_text',
+        'about_us_text',
+        'about_us_image',
+        'donation_message',
+        'video_url',
+        'contact_info',
         'purpose_reason',
-        'location'
     ];
 
     protected $casts = [
         'purpose_reason' => 'array',
+        'contact_info' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     public function users()
