@@ -186,4 +186,64 @@ class CompanyController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get company by alias
+     */
+    public function showAlias(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'alias' => 'required|string|max:255'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation errors',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $alias = $request->input('alias');
+            
+            // Find company by org_key_id
+            $company = Company::where('alias', $alias)->first();
+
+            if (!$company) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Company not found.',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Company retrieved successfully.',
+                'data' => [
+                    'orgId' => $company->org_key_id,
+                    'name' => $company->name,
+                    'alias' => $company->alias,
+                    'logo' => $company->logo,
+                    'mainImage' => $company->main_image,
+                    'welcomeText' => $company->welcome_text,
+                    'testimonyText' => $company->testimony_text,
+                    'aboutUsText' => $company->about_us_text,
+                    'aboutUsImage' => $company->about_us_image,
+                    'donationMessage' => $company->donation_message,
+                    'videoUrl' => $company->video_url,
+                    'contactInfo' => $company->contact_info,
+                    'purpose_reason' => $company->purpose_reason,
+                    'updatedAt' => $company->updated_at->toISOString(),
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve company.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

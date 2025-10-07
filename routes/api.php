@@ -25,6 +25,7 @@ Route::get('/orgs', [OrganizationController::class, 'index']);
 
 Route::post('/companies', [CompanyController::class, 'store']);
 Route::post('/companies/show', [CompanyController::class, 'show']);
+Route::post('/companies/showAlias', [CompanyController::class, 'showAlias']);
 
 // Generate QR code
 Route::post('/generate', [QrCodeController::class, 'generate']);
