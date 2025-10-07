@@ -68,6 +68,11 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    public function company()
+    {
+        return $this->hasOne(Company::class, 'org_key_id', 'org_key_id');
+    }
+
     /* public function subBusinesses()
     {
         return $this->hasMany(User::class, 'parent_id');

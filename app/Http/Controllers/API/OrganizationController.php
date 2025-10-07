@@ -20,69 +20,69 @@ class OrganizationController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $organizations = Company::with(['users.businessProfile'])
+            // Get all users with their related data (excluding transactions)
+            $users = User::with(['businessProfile', 'company'])
                 ->get()
-                ->map(function ($company) {
+                ->map(function ($user) {
                     return [
-                        'org_key_id' => $company->org_key_id,
-                        'company' => [
-                            'name' => $company->name,
-                            'alias' => $company->alias,
-                            'logo' => $company->logo,
-                            'description' => $company->description,
-                            'video' => $company->video,
-                            'purpose_reason' => $company->purpose_reason,
-                            'location' => $company->location,
-                        ],
-                        'users' => $company->users->map(function ($user) {
-                            return [
-                                'id' => $user->id,
-                                'org_key_id' => $user->org_key_id,
-                                'email' => $user->email,
-                                'country_code' => $user->country_code,
-                                'country_name' => $user->country_name,
-                                'phone_no' => $user->phone_no,
-                                'organization_verified' => $user->organization_verified,
-                                'business_profile' => $user->businessProfile ? [
-                                    'organization_name' => $user->businessProfile->organization_name,
-                                    'organization_registration_number' => $user->businessProfile->organization_registration_number,
-                                    'street' => $user->businessProfile->street,
-                                    'street_line2' => $user->businessProfile->street_line2,
-                                    'city' => $user->businessProfile->city,
-                                    'state' => $user->businessProfile->state,
-                                    'zip_code' => $user->businessProfile->zip_code,
-                                    'country' => $user->businessProfile->country,
-                                    'email' => $user->businessProfile->email,
-                                    'account_holder_first_name' => $user->businessProfile->account_holder_first_name,
-                                    'account_holder_last_name' => $user->businessProfile->account_holder_last_name,
-                                    'account_holder_email' => $user->businessProfile->account_holder_email,
-                                    'account_holder_date_of_birth' => $user->businessProfile->account_holder_date_of_birth,
-                                    'account_holder_street' => $user->businessProfile->account_holder_street,
-                                    'account_holder_street_line2' => $user->businessProfile->account_holder_street_line2,
-                                    'account_holder_city' => $user->businessProfile->account_holder_city,
-                                    'account_holder_state' => $user->businessProfile->account_holder_state,
-                                    'account_holder_zip_code' => $user->businessProfile->account_holder_zip_code,
-                                    'account_holder_country' => $user->businessProfile->account_holder_country,
-                                    'account_holder_id_type' => $user->businessProfile->account_holder_id_type,
-                                    'account_holder_id_number' => $user->businessProfile->account_holder_id_number,
-                                    'account_holder_id_document_path' => $user->businessProfile->account_holder_id_document_path,
-                                    'registration_document_path' => $user->businessProfile->registration_document_path,
-                                ] : null
-                            ];
-                        }),
+                        'id' => $user->id,
+                        'org_key_id' => $user->org_key_id,
+                        'email' => $user->email,
+                        'country_code' => $user->country_code,
+                        'country_name' => $user->country_name,
+                        'phone_no' => $user->phone_no,
+                        'organization_verified' => $user->organization_verified,
+                        'created_at' => $user->created_at,
+                        'updated_at' => $user->updated_at,
+                        'company' => $user->company ? [
+                            'name' => $user->company->name,
+                            'alias' => $user->company->alias,
+                            'logo' => $user->company->logo,
+                            'description' => $user->company->description,
+                            'video' => $user->company->video,
+                            'purpose_reason' => $user->company->purpose_reason,
+                            'location' => $user->company->location,
+                        ] : null,
+                        'business_profile' => $user->businessProfile ? [
+                            'organization_name' => $user->businessProfile->organization_name,
+                            'organization_registration_number' => $user->businessProfile->organization_registration_number,
+                            'street' => $user->businessProfile->street,
+                            'street_line2' => $user->businessProfile->street_line2,
+                            'city' => $user->businessProfile->city,
+                            'state' => $user->businessProfile->state,
+                            'zip_code' => $user->businessProfile->zip_code,
+                            'country' => $user->businessProfile->country,
+                            'email' => $user->businessProfile->email,
+                            'account_holder_first_name' => $user->businessProfile->account_holder_first_name,
+                            'account_holder_last_name' => $user->businessProfile->account_holder_last_name,
+                            'account_holder_email' => $user->businessProfile->account_holder_email,
+                            'account_holder_date_of_birth' => $user->businessProfile->account_holder_date_of_birth,
+                            'account_holder_street' => $user->businessProfile->account_holder_street,
+                            'account_holder_street_line2' => $user->businessProfile->account_holder_street_line2,
+                            'account_holder_city' => $user->businessProfile->account_holder_city,
+                            'account_holder_state' => $user->businessProfile->account_holder_state,
+                            'account_holder_zip_code' => $user->businessProfile->account_holder_zip_code,
+                            'account_holder_country' => $user->businessProfile->account_holder_country,
+                            'account_holder_id_type' => $user->businessProfile->account_holder_id_type,
+                            'account_holder_id_number' => $user->businessProfile->account_holder_id_number,
+                            'account_holder_id_document_path' => $user->businessProfile->account_holder_id_document_path,
+                            'registration_document_path' => $user->businessProfile->registration_document_path,
+                        ] : null,
+                        'has_company' => !is_null($user->company),
+                        'has_business_profile' => !is_null($user->businessProfile),
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'data' => $organizations,
-                'message' => 'Organizations retrieved successfully'
+                'data' => $users,
+                'message' => 'All users retrieved successfully'
             ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve organizations',
+                'message' => 'Failed to retrieve users',
                 'error' => $e->getMessage()
             ], 500);
         }
