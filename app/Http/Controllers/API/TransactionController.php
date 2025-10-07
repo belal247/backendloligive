@@ -97,12 +97,11 @@ class TransactionController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'org_key_id' => 'required|string|max:255',
-            'tid' => 'required|string|max:255|unique:transactions,tid',
-            'name' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0.01',
-            'bankFee' => 'nullable|numeric|min:0',
-            'amountReceived' => 'nullable|numeric|min:0',
-            'paymentMethod' => 'required|string|max:100'
+            'name' => 'required|string|max:255',
+            'purpose_reason' => 'required|string|max:255',
+            'comment' => 'nullable|string',
+            'payment_method' => 'required|string|max:100'
         ]);
 
         if ($validator->fails()) {
@@ -115,14 +114,13 @@ class TransactionController extends Controller
 
         try {
             $orgKeyId = $request->input('org_key_id');
-            $tid = $request->input('tid');
-            $name = $request->input('name');
             $amount = $request->input('amount');
-            $bankFee = $request->input('bankFee', 0);
-            $amountReceived = $request->input('amountReceived', $amount - $bankFee);
-            $paymentMethod = $request->input('paymentMethod');
+            $name = $request->input('name');
+            $purposeReason = $request->input('purpose_reason');
+            $comment = $request->input('comment');
+            $paymentMethod = $request->input('payment_method');
 
-            // Verify if org_key_id exists in users table (optional)
+            // Verify if org_key_id exists in users table
             $userExists = User::where('org_key_id', $orgKeyId)->exists();
             
             if (!$userExists) {
@@ -132,6 +130,21 @@ class TransactionController extends Controller
                 ], 404);
             }
 
+            // Generate unique TID in format TXN1001, TXN1002, etc.
+            $lastTransaction = Transaction::orderBy('id', 'desc')->first();
+            $nextId = $lastTransaction ? $lastTransaction->id + 1 : 1;
+            $tid = 'TXN' . $nextId;
+
+            // Check if TID already exists (though very unlikely)
+            while (Transaction::where('tid', $tid)->exists()) {
+                $nextId++;
+                $tid = 'TXN' . $nextId;
+            }
+
+            // Calculate bank fee (2.5% of amount)
+            $bankFee = round($amount * 0.025, 2);
+            $amountReceived = round($amount - $bankFee, 2);
+
             // Create transaction
             $transaction = Transaction::create([
                 'org_key_id' => $orgKeyId,
@@ -140,7 +153,9 @@ class TransactionController extends Controller
                 'amount' => $amount,
                 'bank_fee' => $bankFee,
                 'amount_received' => $amountReceived,
-                'payment_method' => $paymentMethod
+                'payment_method' => $paymentMethod,
+                'purpose_reason' => $purposeReason,
+                'comment' => $comment
             ]);
 
             return response()->json([
@@ -154,6 +169,8 @@ class TransactionController extends Controller
                     'bankFee' => $transaction->bank_fee,
                     'amountReceived' => $transaction->amount_received,
                     'paymentMethod' => $transaction->payment_method,
+                    'purpose_reason' => $transaction->purpose_reason,
+                    'comment' => $transaction->comment,
                     'created_at' => $transaction->created_at,
                 ]
             ], 201);

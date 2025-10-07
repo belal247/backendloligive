@@ -16,8 +16,9 @@ class Transaction extends Model
         'amount',
         'bank_fee',
         'amount_received',
-        'time',
-        'payment_method'
+        'payment_method',
+        'purpose_reason',
+        'comment'
     ];
 
     protected $casts = [
