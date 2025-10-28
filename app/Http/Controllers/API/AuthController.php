@@ -404,6 +404,7 @@ class AuthController extends Controller
                 'phone_no' => $user->phone_no,
                 'organization_verified' => $user->organization_verified,
                 'verification_reason' => $user->verification_reason,
+                'role' => $user->role,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at
             ]
