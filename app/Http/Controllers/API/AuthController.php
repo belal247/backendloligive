@@ -17,6 +17,107 @@ use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
+    public function assignLeader(Request $request)
+    {
+        try {
+
+            // Find organisation by org_key_id
+            $organisation = Company::where('org_key_id', $request->org_key)->first();
+
+            if (!$organisation) 
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Organization not found'
+                ], 404);
+            }
+
+            $phoneEmail = $request->phone_email;
+            $countryCode = $request->country_code;
+            $isEmail = filter_var($phoneEmail, FILTER_VALIDATE_EMAIL);
+
+            // Find existing user by email or phone
+            $user = null;
+            if ($isEmail) 
+            {
+                $user = User::where('email', $phoneEmail)->first();
+            } 
+            else 
+            {
+                // For phone, check with country code
+                $user = User::where('phone', $phoneEmail)
+                            ->where('country_code', $countryCode)
+                            ->first();
+            }
+
+            if ($user) 
+            {
+                // Update existing user role to LEADER
+                $user->where('id', $user->id)
+                     ->update(['role' => 'LEADER']);
+
+                $user->where('org_key_id', $request->org_key)
+                     ->update(['leader_id' => $user->id]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Existing user updated as LEADER and assigned to organization',
+                    'data' => [
+                        'user' => [
+                            'id' => $user->id,
+                            'email' => $user->email,
+                            'phone' => $user->phone,
+                            'country_code' => $user->country_code,
+                            'role' => $user->role,
+                        ]
+                    ]
+                ], 200);
+            }
+
+            // Create new user if not exists
+            $userData = [
+                'role' => 'LEADER',
+                'country_code' => $countryCode,
+            ];
+
+            if ($isEmail) 
+            {
+                $userData['email'] = $phoneEmail;
+            } 
+            else 
+            {
+                $userData['phone'] = $phoneEmail;
+            }
+
+            $user = User::create($userData);
+
+            $user->where('org_key_id', $request->org_key)
+                 ->update(['leader_id' => $user->id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'New LEADER created and assigned to organization',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                        'country_code' => $user->country_code,
+                        'role' => $user->role,
+                    ]
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to assign leader',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
+    }
+
     public function checkUserExists(Request $request)
     {
         // Validate the request
@@ -302,6 +403,133 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'country_code' => 'required|string|max:5',
+            'login_input' => 'required|string', // Can be email or phone
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation Error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Determine if input is email or phone
+        $isEmail = filter_var($request->login_input, FILTER_VALIDATE_EMAIL);
+        $field = $isEmail ? 'email' : 'phone_no';
+
+        // Find user based on provided credentials
+        $user = User::where('country_code', $request->country_code)
+                ->where($field, $request->login_input)
+                ->first();
+
+        // Check if user exists
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+                'errors' => ['auth' => 'The provided credentials are incorrect']
+            ], 404);
+        }
+
+        // Generate org_key_id if not set
+        if (empty($user->org_key_id)) {
+            $numbers = '0123456789';
+            $alphaChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $orgKeyId = '';
+
+            // Generate 14 random numbers
+            for ($i = 0; $i < 14; $i++) {
+                $orgKeyId .= $numbers[rand(0, strlen($numbers) - 1)];
+            }
+
+            // Insert 2 alpha characters at random positions
+            $positions = array_rand(range(0, 15), 2);
+            foreach ($positions as $pos) {
+                $orgKeyId = substr_replace(
+                    $orgKeyId, 
+                    $alphaChars[rand(0, strlen($alphaChars) - 1)], 
+                    $pos, 
+                    0
+                );
+            }
+
+            // Ensure exactly 16 characters
+            $orgKeyId = substr($orgKeyId, 0, 16);
+            
+            $user->update(['org_key_id' => $orgKeyId]);
+            $user->refresh();
+        }
+
+        // Create custom JWT claims
+        $customClaims = [
+            'sub' => $user->id,
+            'org_key_id' => $user->org_key_id,
+            'iat' => now()->timestamp,
+            'exp' => now()->addMinutes(auth()->factory()->getTTL())->timestamp,
+            'jti' => Str::random(20),
+        ];
+
+        // Generate token
+        $token = auth()->claims($customClaims)->login($user);
+
+        if (!$token) {
+            try {
+                $payload = auth()->factory()->make($customClaims);
+                $token = auth()->manager()->encode($payload)->get();
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Token generation failed',
+                    'errors' => ['auth' => 'Could not generate authentication token']
+                ], 500);
+            }
+        }
+
+        // If user is LEADER, get org_key_ids of all users under them
+        $leaderOrgKeys = [];
+        if (strtoupper($user->role) === 'LEADER') {
+            $leaderOrgKeys = User::where('leader_id', $user->id)
+                                ->whereNotNull('org_key_id')
+                                ->pluck('org_key_id')
+                                ->toArray();
+        }
+
+        // Prepare response
+        $response = [
+            'status' => true,
+            'message' => 'Login successful',
+            'user_id' => $user->id,
+            'org_key_id' => $user->org_key_id,
+            'JWT_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60,
+            'user' => [
+                'org_key_id' => $user->org_key_id,
+                'email' => $user->email,
+                'country_code' => $user->country_code,
+                'phone_no' => $user->phone_no,
+                'organization_verified' => $user->organization_verified,
+                'verification_reason' => $user->verification_reason,
+                'role' => $user->role,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at
+            ]
+        ];
+
+        // Add team org keys if user is LEADER
+        if (!empty($leaderOrgKeys)) {
+            $response['team_org_key_ids'] = $leaderOrgKeys;
+        }
+
+        return response()->json($response, 200);
+    }
+
+    public function login_old(Request $request)
     {
         // Validate input
         $validator = Validator::make($request->all(), [

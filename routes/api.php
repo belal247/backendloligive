@@ -58,6 +58,8 @@ Route::get('/check-storage', function () {
             : 'Storage link does not exist. Run php artisan storage:link'
     ]);
 });
+
+Route::post('assignLeader', [AuthController::class, 'assignLeader']);
 Route::post('signup', [AuthController::class, 'signup']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('reset-otp', [AuthController::class, 'resetOtp']);
