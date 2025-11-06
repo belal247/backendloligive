@@ -19,7 +19,37 @@ use Illuminate\Http\Client\RequestException;
 
 class AuthController extends Controller
 {
-        public function getConvergePayIp()
+    public function getTransactionToken()
+    {
+        try {
+            $response = Http::withOptions([
+                    'max_redirects' => 10,
+                    'timeout' => 0,
+                    'version' => CURL_HTTP_VERSION_1_1,
+                ])
+                ->withHeaders([
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1'
+                ])
+                ->asForm()
+                ->post('https://api.demo.convergepay.com/hosted-payments/transaction_token', [
+                    'ssl_account_id' => '0022540',
+                    'ssl_user_id' => 'apiuser',
+                    'ssl_pin' => 'WTW0TM8OJ07IYD1RLZU4QK4XD35S9IBZ0BOS0OGDZSI9KR6NI1ZT95T9X2T24JOK',
+                    'ssl_transaction_type' => 'ccsale',
+                    'ssl_amount' => '1.00',
+                    'ssl_get_token' => 'Y'
+                ]);
+
+            return $response->body();
+
+        } catch (RequestException $e) {
+            // Handle exception or log error
+            return response()->json(['error' => 'Request failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getConvergePayIp()
     {
         try {
             $response = Http::withOptions([
