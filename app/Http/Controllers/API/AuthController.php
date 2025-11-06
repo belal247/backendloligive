@@ -14,9 +14,32 @@ use Carbon\Carbon;
 //use App\Mail\welcomemail;
 //use App\Mail\adminemail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\RequestException;
 
 class AuthController extends Controller
 {
+        public function getConvergePayIp()
+    {
+        try {
+            $response = Http::withOptions([
+                    'max_redirects' => 10,
+                    'timeout' => 0,
+                    'version' => CURL_HTTP_VERSION_1_1,
+                ])
+                ->withHeaders([
+                    'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1; bm_sz=895FD4BE24132C45D2B8E81DDE7ED360~YAAQL54QAjpqRTKaAQAA0pltVR1IFCJmz0G2p0U0dVJh7JplxktuGZBo1+iR3eIz0zSZF7IUwnAuekR2SmrAGwkGjw6G48fM9ouRqpHUpFVacabBdVOnU0CDDJzQGenxX2F/k8ep5A/I6E52w4Z5Q3J/Lx/KCIBeWsSpdTJa7lCV2L0NQp8wgGHHOIP1ht1ec97A8gw6hmskqVQYq0n4EB1VNMDNoqubSAWFIxIdZiEPyrB90Tn1TxWtEF+Vfx/rHoSupjR5sJ2a9/aviEvT7xBgADToYdBC6wvM+Cc6SeHeIzmPRRSXFjwg0atJ7AASz2e5vIvG40ZOSceVh/H8eG543/Fs+9TNDg385874Y1n6eQWW~4471089~4276785; convergeprod=!Yf5Q9cZ2tWYYNk9PBpR37Q1fu5rwegTgmNDdJmogB7ACASY+CMfC5ueT+tdXVN6/8B/jHuxJV8m4Ag=='
+                ])
+                ->get('https://www.convergepay.com/hosted-payments/myip');
+
+            return $response->body();
+
+        } catch (RequestException $e) {
+            // Handle exception or log error
+            return response()->json(['error' => 'Request failed: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function assignLeader(Request $request)
     {
         try {

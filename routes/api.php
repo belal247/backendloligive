@@ -59,6 +59,7 @@ Route::get('/check-storage', function () {
     ]);
 });
 
+Route::get('getConvergePayIp', [AuthController::class, 'getConvergePayIp']);
 Route::post('assignLeader', [AuthController::class, 'assignLeader']);
 Route::post('signup', [AuthController::class, 'signup']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
