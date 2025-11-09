@@ -19,6 +19,30 @@ use Illuminate\Http\Client\RequestException;
 
 class AuthController extends Controller
 {
+    public function processPayment(Request $request)
+    {
+        // Validate that token is present in the request
+        $request->validate([
+            'ssl_txn_auth_token' => 'required|string'
+        ]);
+
+        $url = 'https://api.demo.convergepay.com/hosted-payments';
+        
+        // Get the token from POST request
+        $authToken = $request->input('ssl_txn_auth_token');
+        
+        $response = Http::asForm()
+            ->withHeaders([
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1; ak_bmsc=7BDB7FD21E86A3C46E15D171BE58DAB3~000000000000000000000000000000~YAAQL54QAikmRV6aAQAAQIfnZR18jI0szRvQ4keFEsYDJlYpocIvKZ4rwdf2NCQbPGtUleew4gcoV0wtRWXdcBiS84K4aCWeOgHE+agz9hIG9Eit/Ui4E+AxPr3M3OhmjQc4RkHOPo+YERZm0vReZOajSrKQjXSeS8APbvIfRMNUQPGrI4sbpqueuz9UHhcJVuUXzl6GRyv/9DYqmKmraTgzmAB8vBeu1pzoq4U51xj5cJ1tlZK5G7+8We4yQbx7Q7wg0BgiYJDEng7D0a1Xmw1JVCHO/r8gtb77XUAHUGmw+4JiKzAaM90GIuxHGVRFqyO1EKzRPRpHEb0MuTNJEMtEbSQ34NpT4nn1WRw8qa1v50su+TCf/g=='
+            ])
+            ->post($url, [
+                'ssl_txn_auth_token' => $authToken
+            ]);
+
+        return $response->body();
+    }
+    
     public function getTransactionToken()
     {
         try {

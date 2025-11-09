@@ -59,6 +59,7 @@ Route::get('/check-storage', function () {
     ]);
 });
 
+Route::post('processPayment', [AuthController::class, 'processPayment']);
 Route::post('getTransactionToken', [AuthController::class, 'getTransactionToken']);
 Route::get('getConvergePayIp', [AuthController::class, 'getConvergePayIp']);
 Route::post('assignLeader', [AuthController::class, 'assignLeader']);
