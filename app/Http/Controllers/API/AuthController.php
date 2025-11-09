@@ -40,9 +40,10 @@ class AuthController extends Controller
                 'ssl_txn_auth_token' => $authToken
             ]);
 
-        return $response->body();
+        //return $response->body();
+        return response($response->body())->header('Content-Type', 'text/html');
     }
-    
+
     public function getTransactionToken()
     {
         try {
