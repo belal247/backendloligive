@@ -26,11 +26,11 @@ class AuthController extends Controller
             'ssl_txn_auth_token' => 'required|string'
         ]);
 
-        $url = 'https://api.demo.convergepay.com/hosted-payments';
-        
+        $url = 'https://hpp.na.elavonpayments.com/hosted-payments';
+
         // Get the token from POST request
         $authToken = $request->input('ssl_txn_auth_token');
-        
+
         $response = Http::asForm()
             ->withHeaders([
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -44,29 +44,49 @@ class AuthController extends Controller
         return response($response->body())->header('Content-Type', 'text/html');
     }
 
-    public function getTransactionToken()
+    public function getTransactionToken(Request $request)
     {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.50',
+        ], [
+            'amount.required' => 'Amount is required.',
+            'amount.numeric' => 'Amount must be a number.',
+            'amount.min' => 'Minimum amount must be 0.50.',
+        ]);
         try {
             $response = Http::withOptions([
-                    'max_redirects' => 10,
-                    'timeout' => 0,
-                    'version' => CURL_HTTP_VERSION_1_1,
-                ])
+                'max_redirects' => 10,
+                'timeout' => 0,
+                'version' => CURL_HTTP_VERSION_1_1,
+            ])
                 ->withHeaders([
                     'Content-Type' => 'application/x-www-form-urlencoded',
                     'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1'
                 ])
                 ->asForm()
-                ->post('https://api.demo.convergepay.com/hosted-payments/transaction_token', [
-                    'ssl_account_id' => '0022540',
-                    'ssl_user_id' => 'apiuser',
-                    'ssl_pin' => 'WTW0TM8OJ07IYD1RLZU4QK4XD35S9IBZ0BOS0OGDZSI9KR6NI1ZT95T9X2T24JOK',
+                ->post('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
+                    'ssl_account_id' => '2693813',
+                    'ssl_user_id' => '8045256156web',
+                    'ssl_pin' => 'WVVN6XVVOOF92M73QP4GPV2CJRVMON907KCR3Z2NUZCEEG4PDIR7TJEGNR9VL4VW',
                     'ssl_transaction_type' => 'ccsale',
-                    'ssl_amount' => '1.00',
+                    'ssl_amount' => $request->amount,
                     'ssl_get_token' => 'Y'
                 ]);
 
-            return $response->body();
+            // Convert the response (key=value lines) to an array
+            parse_str($response->body(), $data);
+
+            // Check if the token exists and return JSON
+            if (isset($data['ssl_txn_auth_token'])) {
+                return response()->json([
+                    'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
+                ]);
+            } else {
+                return response()->json([
+                    'error' => 'Token not found in response',
+                    'response' => $data
+                ], 400);
+            }
 
         } catch (RequestException $e) {
             // Handle exception or log error
@@ -78,10 +98,10 @@ class AuthController extends Controller
     {
         try {
             $response = Http::withOptions([
-                    'max_redirects' => 10,
-                    'timeout' => 0,
-                    'version' => CURL_HTTP_VERSION_1_1,
-                ])
+                'max_redirects' => 10,
+                'timeout' => 0,
+                'version' => CURL_HTTP_VERSION_1_1,
+            ])
                 ->withHeaders([
                     'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1; bm_sz=895FD4BE24132C45D2B8E81DDE7ED360~YAAQL54QAjpqRTKaAQAA0pltVR1IFCJmz0G2p0U0dVJh7JplxktuGZBo1+iR3eIz0zSZF7IUwnAuekR2SmrAGwkGjw6G48fM9ouRqpHUpFVacabBdVOnU0CDDJzQGenxX2F/k8ep5A/I6E52w4Z5Q3J/Lx/KCIBeWsSpdTJa7lCV2L0NQp8wgGHHOIP1ht1ec97A8gw6hmskqVQYq0n4EB1VNMDNoqubSAWFIxIdZiEPyrB90Tn1TxWtEF+Vfx/rHoSupjR5sJ2a9/aviEvT7xBgADToYdBC6wvM+Cc6SeHeIzmPRRSXFjwg0atJ7AASz2e5vIvG40ZOSceVh/H8eG543/Fs+9TNDg385874Y1n6eQWW~4471089~4276785; convergeprod=!Yf5Q9cZ2tWYYNk9PBpR37Q1fu5rwegTgmNDdJmogB7ACASY+CMfC5ueT+tdXVN6/8B/jHuxJV8m4Ag=='
                 ])
@@ -102,8 +122,7 @@ class AuthController extends Controller
             // Find organisation by org_key_id
             $organisation = Company::where('org_key_id', $request->org_key)->first();
 
-            if (!$organisation) 
-            {
+            if (!$organisation) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Organization not found'
@@ -116,26 +135,22 @@ class AuthController extends Controller
 
             // Find existing user by email or phone
             $user = null;
-            if ($isEmail) 
-            {
+            if ($isEmail) {
                 $user = User::where('email', $phoneEmail)->first();
-            } 
-            else 
-            {
+            } else {
                 // For phone, check with country code
                 $user = User::where('phone', $phoneEmail)
-                            ->where('country_code', $countryCode)
-                            ->first();
+                    ->where('country_code', $countryCode)
+                    ->first();
             }
 
-            if ($user) 
-            {
+            if ($user) {
                 // Update existing user role to LEADER
                 $user->where('id', $user->id)
-                     ->update(['role' => 'LEADER']);
+                    ->update(['role' => 'LEADER']);
 
                 $user->where('org_key_id', $request->org_key)
-                     ->update(['leader_id' => $user->id]);
+                    ->update(['leader_id' => $user->id]);
 
                 return response()->json([
                     'success' => true,
@@ -158,19 +173,16 @@ class AuthController extends Controller
                 'country_code' => $countryCode,
             ];
 
-            if ($isEmail) 
-            {
+            if ($isEmail) {
                 $userData['email'] = $phoneEmail;
-            } 
-            else 
-            {
+            } else {
                 $userData['phone'] = $phoneEmail;
             }
 
             $user = User::create($userData);
 
             $user->where('org_key_id', $request->org_key)
-                 ->update(['leader_id' => $user->id]);
+                ->update(['leader_id' => $user->id]);
 
             return response()->json([
                 'success' => true,
@@ -187,7 +199,7 @@ class AuthController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to assign leader',
@@ -206,7 +218,7 @@ class AuthController extends Controller
 
         $email = $request->input('email');
         $phone = $request->input('phone_no');
-        
+
         $exists = false;
         $field = null;
         $message = null;
@@ -260,7 +272,7 @@ class AuthController extends Controller
             'message' => 'No user found with these credentials'
         ]);
     }
-    
+
     public function signup(Request $request)
     {
         // Validate input
@@ -297,8 +309,8 @@ class AuthController extends Controller
 
         // Check if phone exists
         $phoneExists = User::where('country_code', $request->country_code)
-                        ->where('phone_no', $request->phone_no)
-                        ->exists();
+            ->where('phone_no', $request->phone_no)
+            ->exists();
 
         if ($phoneExists) {
             return response()->json([
@@ -310,34 +322,34 @@ class AuthController extends Controller
 
         // Check if user exists
         $user = User::where('email', $request->email)
-                ->orWhere(function($query) use ($request) {
-                    $query->where('country_code', $request->country_code)
-                            ->where('phone_no', $request->phone_no);
-                })
-                ->first();
+            ->orWhere(function ($query) use ($request) {
+                $query->where('country_code', $request->country_code)
+                    ->where('phone_no', $request->phone_no);
+            })
+            ->first();
 
         if (!$user) {
             // Generate org_key_id first
             $numbers = '0123456789';
             $alphaChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $orgKeyId = '';
-            
+
             // Generate 14 random numbers
             for ($i = 0; $i < 14; $i++) {
                 $orgKeyId .= $numbers[rand(0, strlen($numbers) - 1)];
             }
-            
+
             // Insert 2 alpha characters at random positions
             $positions = array_rand(range(0, 15), 2);
             foreach ($positions as $pos) {
                 $orgKeyId = substr_replace(
-                    $orgKeyId, 
-                    $alphaChars[rand(0, strlen($alphaChars) - 1)], 
-                    $pos, 
+                    $orgKeyId,
+                    $alphaChars[rand(0, strlen($alphaChars) - 1)],
+                    $pos,
                     0
                 );
             }
-            
+
             // Ensure exactly 16 characters
             $orgKeyId = substr($orgKeyId, 0, 16);
 
@@ -359,7 +371,7 @@ class AuthController extends Controller
 
         // Refresh user data
         $user->refresh();
-        
+
         // Prepare the response with the new structure
         $userResponse = [
             'org_key_id' => $user->org_key_id,
@@ -372,7 +384,7 @@ class AuthController extends Controller
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at
         ];
-        
+
         return response()->json([
             'status' => true,
             'message' => $user->wasRecentlyCreated ? 'User Created Successfully.' : 'User details updated.',
@@ -407,8 +419,8 @@ class AuthController extends Controller
 
         // Find the OTP record
         $tempOtp = TempOtp::where('user_id', $user->id)
-                        ->where('otp', $request->otp)
-                        ->first();
+            ->where('otp', $request->otp)
+            ->first();
 
         // Check if OTP exists
         if (!$tempOtp) {
@@ -502,8 +514,8 @@ class AuthController extends Controller
 
         // Find user based on provided credentials
         $user = User::where('country_code', $request->country_code)
-                ->where($field, $request->login_input)
-                ->first();
+            ->where($field, $request->login_input)
+            ->first();
 
         // Check if user exists
         if (!$user) {
@@ -529,16 +541,16 @@ class AuthController extends Controller
             $positions = array_rand(range(0, 15), 2);
             foreach ($positions as $pos) {
                 $orgKeyId = substr_replace(
-                    $orgKeyId, 
-                    $alphaChars[rand(0, strlen($alphaChars) - 1)], 
-                    $pos, 
+                    $orgKeyId,
+                    $alphaChars[rand(0, strlen($alphaChars) - 1)],
+                    $pos,
                     0
                 );
             }
 
             // Ensure exactly 16 characters
             $orgKeyId = substr($orgKeyId, 0, 16);
-            
+
             $user->update(['org_key_id' => $orgKeyId]);
             $user->refresh();
         }
@@ -572,9 +584,9 @@ class AuthController extends Controller
         $leaderOrgKeys = [];
         if (strtoupper($user->role) === 'LEADER') {
             $leaderOrgKeys = User::where('leader_id', $user->id)
-                                ->whereNotNull('org_key_id')
-                                ->pluck('org_key_id')
-                                ->toArray();
+                ->whereNotNull('org_key_id')
+                ->pluck('org_key_id')
+                ->toArray();
         }
 
         // Prepare response
@@ -629,8 +641,8 @@ class AuthController extends Controller
 
         // Find user based on provided credentials
         $user = User::where('country_code', $request->country_code)
-                ->where($field, $request->login_input)
-                ->first();
+            ->where($field, $request->login_input)
+            ->first();
 
         // Check if user exists
         if (!$user) {
@@ -646,26 +658,26 @@ class AuthController extends Controller
             $numbers = '0123456789';
             $alphaChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             $orgKeyId = '';
-            
+
             // Generate 14 random numbers
             for ($i = 0; $i < 14; $i++) {
                 $orgKeyId .= $numbers[rand(0, strlen($numbers) - 1)];
             }
-            
+
             // Insert 2 alpha characters at random positions
             $positions = array_rand(range(0, 15), 2);
             foreach ($positions as $pos) {
                 $orgKeyId = substr_replace(
-                    $orgKeyId, 
-                    $alphaChars[rand(0, strlen($alphaChars) - 1)], 
-                    $pos, 
+                    $orgKeyId,
+                    $alphaChars[rand(0, strlen($alphaChars) - 1)],
+                    $pos,
                     0
                 );
             }
-            
+
             // Ensure exactly 16 characters
             $orgKeyId = substr($orgKeyId, 0, 16);
-            
+
             $user->update(['org_key_id' => $orgKeyId]);
             $user->refresh(); // Refresh to get the updated org_key_id
         }
@@ -717,8 +729,9 @@ class AuthController extends Controller
             ]
         ], 200);
     }
-    
-    public function logout(Request $request){
+
+    public function logout(Request $request)
+    {
         $user = $request->user();
         $user->tokens()->delete();
 
@@ -726,6 +739,6 @@ class AuthController extends Controller
             'status' => true,
             'user' => $user,
             'message' => 'You logged Out Successfully',
-        ],200);
+        ], 200);
     }
 }
