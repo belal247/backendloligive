@@ -25,7 +25,6 @@ class AuthController extends Controller
         $request->validate([
             'ssl_txn_auth_token' => 'required|string'
         ]);
-
         $url = 'https://hpp.na.elavonpayments.com/hosted-payments';
 
         // Get the token from POST request
