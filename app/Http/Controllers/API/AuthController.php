@@ -58,10 +58,10 @@ class AuthController extends Controller
                 'timeout' => 0,
                 'version' => CURL_HTTP_VERSION_1_1,
             ])
-                // ->withHeaders([
-                //     'Content-Type' => 'application/x-www-form-urlencoded',
-                //     'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1'
-                // ])
+                ->withHeaders([
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1'
+                ])
                 ->asForm()
                 ->post('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
                     'ssl_account_id' => '2693813',
@@ -76,16 +76,13 @@ class AuthController extends Controller
             parse_str($response->body(), $data);
 
             // Check if the token exists and return JSON
-            if (isset($data['ssl_txn_auth_token'])) {
+          
                 return response()->json([
                     'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
                 ]);
-            } else {
-                return response()->json([
-                    'error' => 'Token not found in response',
-                    'response' => $data
-                ], 400);
-            }
+           
+                
+           
 
         } catch (RequestException $e) {
             // Handle exception or log error
