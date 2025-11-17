@@ -209,7 +209,7 @@ class BusinessProfileController extends Controller
             'account_holder_state' => 'required|string|max:255',
             'account_holder_zip_code' => 'nullable|string|max:20',
             'account_holder_country' => 'required|string|max:255',
-            'account_holder_id_type' => 'required|string|in:Passport,Driver License,National ID',
+            'account_holder_id_type' => 'required|string',
             'account_holder_id_number' => 'required|string|max:255',
             'registration_document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'account_holder_id_document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120'

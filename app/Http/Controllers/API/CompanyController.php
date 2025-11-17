@@ -14,18 +14,20 @@ class CompanyController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        // Validate request
         $validator = Validator::make($request->all(), [
             'org_key_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'alias' => 'required|string|max:255',
-            'logo' => 'nullable|url|max:2000',
-            'mainImage' => 'nullable|url|max:2000',
+            'logo' => 'nullable|file|image|mimes:jpg,jpeg,png,gif,svg|max:2048',
+            'isVideo'=>'required',
+            'mainImage' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,mp4,mov|max:10240',
             'welcomeText' => 'nullable|string|max:1000',
             'testimonyText' => 'nullable|string|max:1000',
             'aboutUsText' => 'nullable|string|max:2000',
-            'aboutUsImage' => 'nullable|url|max:2000',
+            'aboutUsImage' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,mp4,mov|max:10240',
             'donationMessage' => 'nullable|string|max:1000',
-            'videoUrl' => 'nullable|url|max:2000',
+            'videoUrl' => 'nullable|file|mimes:mp4,mov,avi|max:51200',
             'contactInfo' => 'nullable|array',
             'contactInfo.address' => 'nullable|string|max:500',
             'contactInfo.phone' => 'nullable|string|max:20',
@@ -43,52 +45,47 @@ class CompanyController extends Controller
         }
 
         try {
-            $action = 'created'; // Track whether we're creating or updating
-            
-            // Check if company exists with the same orgId
+            $action = 'created'; // Track create or update
             $company = Company::where('org_key_id', $request->org_key_id)->first();
 
+            // Helper function to save file and return URL
+            $saveFile = function ($file, $folder) {
+                if ($file) {
+                    $path = $file->store($folder, 'public');
+                    return asset('storage/' . $path);
+                }
+                return null;
+            };
+
+            // Save files if uploaded
+            $logoUrl = $saveFile($request->file('logo'), 'companies/logos');
+            $mainImageUrl = $saveFile($request->file('mainImage'), 'companies/main_images');
+            $aboutUsImageUrl = $saveFile($request->file('aboutUsImage'), 'companies/about_us');
+            $videoUrl = $saveFile($request->file('videoUrl'), 'companies/videos');
+
+            $data = [
+                'name' => $request->name,
+                'alias' => $request->alias,
+                'logo' => $logoUrl ?? ($company->logo ?? null),
+                'main_image' => $mainImageUrl ?? ($company->main_image ?? null),
+                'isVideo' => $request->isVideo,
+                'welcome_text' => $request->welcomeText,
+                'testimony_text' => $request->testimonyText,
+                'about_us_text' => $request->aboutUsText,
+                'about_us_image' => $aboutUsImageUrl ?? ($company->about_us_image ?? null),
+                'donation_message' => $request->donationMessage,
+                'video_url' => $videoUrl ?? ($company->video_url ?? null),
+                'contact_info' => $request->contactInfo,
+                'purpose_reason' => $request->purpose_reason,
+            ];
+
             if ($company) {
-                // Update existing company
                 $action = 'updated';
-                
-                $updateData = [
-                    'name' => $request->name,
-                    'alias' => $request->alias,
-                    'logo' => $request->logo,
-                    'main_image' => $request->mainImage,
-                    'welcome_text' => $request->welcomeText,
-                    'testimony_text' => $request->testimonyText,
-                    'about_us_text' => $request->aboutUsText,
-                    'about_us_image' => $request->aboutUsImage,
-                    'donation_message' => $request->donationMessage,
-                    'video_url' => $request->videoUrl,
-                    'contact_info' => $request->contactInfo,
-                    'purpose_reason' => $request->purpose_reason,
-                ];
-
-                $company->update($updateData);
-
+                $company->update($data);
             } else {
-                // Create new company
-                $company = Company::create([
-                    'org_key_id' => $request->org_key_id,
-                    'name' => $request->name,
-                    'alias' => $request->alias,
-                    'logo' => $request->logo,
-                    'main_image' => $request->mainImage,
-                    'welcome_text' => $request->welcomeText,
-                    'testimony_text' => $request->testimonyText,
-                    'about_us_text' => $request->aboutUsText,
-                    'about_us_image' => $request->aboutUsImage,
-                    'donation_message' => $request->donationMessage,
-                    'video_url' => $request->videoUrl,
-                    'contact_info' => $request->contactInfo,
-                    'purpose_reason' => $request->purpose_reason,
-                ]);
+                $company = Company::create(array_merge(['org_key_id' => $request->org_key_id], $data));
             }
 
-            // Refresh the company instance to get updated data
             $company->refresh();
 
             return response()->json([
@@ -118,7 +115,7 @@ class CompanyController extends Controller
                 'org_key_id' => $request->org_key_id,
                 'exception' => $e
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to process company.',
@@ -126,6 +123,7 @@ class CompanyController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Get company by org_key_id
@@ -146,7 +144,7 @@ class CompanyController extends Controller
             }
 
             $org_key_id = $request->input('org_key_id');
-            
+
             // Find company by org_key_id
             $company = Company::where('org_key_id', $org_key_id)->first();
 
@@ -206,7 +204,7 @@ class CompanyController extends Controller
             }
 
             $alias = $request->input('alias');
-            
+
             // Find company by org_key_id
             $company = Company::where('alias', $alias)->first();
 
