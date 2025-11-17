@@ -25,6 +25,7 @@ class Company extends Model
         'video_url',
         'contact_info',
         'purpose_reason',
+        'isVideo',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class Company extends Model
         'contact_info' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'isVideo' => 'boolean'
     ];
 
     public function users()

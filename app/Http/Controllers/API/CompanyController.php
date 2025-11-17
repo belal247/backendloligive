@@ -20,7 +20,7 @@ class CompanyController extends Controller
             'name' => 'required|string|max:255',
             'alias' => 'required|string|max:255',
             'logo' => 'nullable|file|image|mimes:jpg,jpeg,png,gif,svg|max:2048',
-            'isVideo'=>'required',
+            'isVideo' => 'required|string', // frontend sends "true" or "false"
             'mainImage' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,mp4,mov|max:10240',
             'welcomeText' => 'nullable|string|max:1000',
             'testimonyText' => 'nullable|string|max:1000',
@@ -45,10 +45,10 @@ class CompanyController extends Controller
         }
 
         try {
-            $action = 'created'; // Track create or update
+            $action = 'created';
             $company = Company::where('org_key_id', $request->org_key_id)->first();
 
-            // Helper function to save file and return URL
+            // Helper to save files and return URL
             $saveFile = function ($file, $folder) {
                 if ($file) {
                     $path = $file->store($folder, 'public');
@@ -57,7 +57,7 @@ class CompanyController extends Controller
                 return null;
             };
 
-            // Save files if uploaded
+            // Save uploaded files
             $logoUrl = $saveFile($request->file('logo'), 'companies/logos');
             $mainImageUrl = $saveFile($request->file('mainImage'), 'companies/main_images');
             $aboutUsImageUrl = $saveFile($request->file('aboutUsImage'), 'companies/about_us');
@@ -68,7 +68,7 @@ class CompanyController extends Controller
                 'alias' => $request->alias,
                 'logo' => $logoUrl ?? ($company->logo ?? null),
                 'main_image' => $mainImageUrl ?? ($company->main_image ?? null),
-                'isVideo' => $request->isVideo,
+                'isVideo' => filter_var($request->isVideo, FILTER_VALIDATE_BOOLEAN),
                 'welcome_text' => $request->welcomeText,
                 'testimony_text' => $request->testimonyText,
                 'about_us_text' => $request->aboutUsText,
@@ -96,6 +96,7 @@ class CompanyController extends Controller
                     'name' => $company->name,
                     'alias' => $company->alias,
                     'logo' => $company->logo,
+                    'isVideo'=> $company->isVideo,
                     'mainImage' => $company->main_image,
                     'welcomeText' => $company->welcome_text,
                     'testimonyText' => $company->testimony_text,
@@ -123,6 +124,7 @@ class CompanyController extends Controller
             ], 500);
         }
     }
+
 
 
     /**
