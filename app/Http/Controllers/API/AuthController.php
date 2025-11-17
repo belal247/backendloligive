@@ -52,6 +52,7 @@ class AuthController extends Controller
             'amount.numeric' => 'Amount must be a number.',
             'amount.min' => 'Minimum amount must be 0.50.',
         ]);
+
         try {
             $response = Http::withOptions([
                 'max_redirects' => 10,
@@ -60,7 +61,6 @@ class AuthController extends Controller
             ])
                 ->withHeaders([
                     'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Cookie' => '_abck=5775A11AD4D5FAA5981B1D2FDA6B50C3~-1~YAAQL54QAjlqRTKaAQAA0pltVQ6GjsYKPE9756B56TufA/I+w2mKeNZRtR16E7M2k86r5Mx7+Qe1+LK1OGcmQmkdymwD9HlVaP8UOnl0Nx88HqOyjEesxxncvYPTQZQy9bDadZ5y6/uLAsfPAqInhJAG6nG8iADODUWEfsIpj+oXf1kr6GMMEHspGMQRd4pSDMMeapes+1zLemjp/qFntex9M4xEIRUeFdCbOVtjJbcObkAUv/hGqO35wBg3KWl0rcuAyrdN9r9QrXmyTnMFfAg3vEp9H6SVYQMsqSAiVGEOZ5Bp88wYdYiOqs523rufT2DfBowXTEzuaTdhfTK6ImFGc/6FYHWKF0GOawtW64HFlf7+XCftd1NoMRQ6Hr7eOWjwGhOMs4tCqB7TGEXpiPvqk+wzV9hJVMjyQhRw92FE/qMc7wbLD2RHdIUR+DAWQw2v80IlOy8qBg==~-1~-1~-1~-1~-1'
                 ])
                 ->asForm()
                 ->post('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
@@ -69,26 +69,32 @@ class AuthController extends Controller
                     'ssl_pin' => 'WVVN6XVVOOF92M73QP4GPV2CJRVMON907KCR3Z2NUZCEEG4PDIR7TJEGNR9VL4VW',
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $request->amount,
-                    'ssl_get_token' => 'Y'
+                    'ssl_get_token' => 'Y',
                 ]);
 
-            // Convert the response (key=value lines) to an array
-            parse_str($response->body(), $data);
+            // Convert response to array
+            $data = $response->json();
 
-            // Check if the token exists and return JSON
-          
+            // Check if token exists
+            if (!isset($data['ssl_txn_auth_token'])) {
                 return response()->json([
-                    'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
-                ]);
-           
-                
-           
+                    'error' => 'Token not received from Elavon',
+                    'response' => $data
+                ], 400);
+            }
 
-        } catch (RequestException $e) {
-            // Handle exception or log error
-            return response()->json(['error' => 'Request failed: ' . $e->getMessage()], 500);
+            // Return token
+            return response()->json([
+                'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Request failed: ' . $e->getMessage()
+            ], 500);
         }
     }
+
 
     public function getConvergePayIp()
     {
