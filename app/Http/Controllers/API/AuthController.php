@@ -43,14 +43,11 @@ class AuthController extends Controller
         return response($response->body())->header('Content-Type', 'text/html');
     }
 
+
     public function getTransactionToken(Request $request)
     {
         $request->validate([
             'amount' => 'required|numeric|min:0.50',
-        ], [
-            'amount.required' => 'Amount is required.',
-            'amount.numeric' => 'Amount must be a number.',
-            'amount.min' => 'Minimum amount must be 0.50.',
         ]);
 
         try {
@@ -63,19 +60,17 @@ class AuthController extends Controller
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ])
                 ->asForm()
-                ->post('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
-                    'ssl_account_id' => '2693813',
-                    'ssl_user_id' => '8045256156web',
-                    'ssl_pin' => 'WVVN6XVVOOF92M73QP4GPV2CJRVMON907KCR3Z2NUZCEEG4PDIR7TJEGNR9VL4VW',
+                ->post(env('ELAVON_URL'), [
+                    'ssl_account_id' => env('ELAVON_ACCOUNT_ID'),
+                    'ssl_user_id' => env('ELAVON_USER_ID'),
+                    'ssl_pin' => env('ELAVON_PIN'),
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $request->amount,
                     'ssl_get_token' => 'Y',
                 ]);
 
-            // Convert response to array
             $data = $response->json();
 
-            // Check if token exists
             if (!isset($data['ssl_txn_auth_token'])) {
                 return response()->json([
                     'error' => 'Token not received from Elavon',
@@ -83,7 +78,6 @@ class AuthController extends Controller
                 ], 400);
             }
 
-            // Return token
             return response()->json([
                 'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
             ]);
@@ -94,6 +88,59 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+
+    // public function getTransactionToken(Request $request)
+    // {
+    //     $request->validate([
+    //         'amount' => 'required|numeric|min:0.50',
+    //     ], [
+    //         'amount.required' => 'Amount is required.',
+    //         'amount.numeric' => 'Amount must be a number.',
+    //         'amount.min' => 'Minimum amount must be 0.50.',
+    //     ]);
+
+    //     try {
+    //         $response = Http::withOptions([
+    //             'max_redirects' => 10,
+    //             'timeout' => 0,
+    //             'version' => CURL_HTTP_VERSION_1_1,
+    //         ])
+    //             ->withHeaders([
+    //                 'Content-Type' => 'application/x-www-form-urlencoded',
+    //             ])
+    //             ->asForm()
+    //             ->post('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
+    //                 'ssl_account_id' => '2693813',
+    //                 'ssl_user_id' => '8045256156web',
+    //                 'ssl_pin' => 'WVVN6XVVOOF92M73QP4GPV2CJRVMON907KCR3Z2NUZCEEG4PDIR7TJEGNR9VL4VW',
+    //                 'ssl_transaction_type' => 'ccsale',
+    //                 'ssl_amount' => $request->amount,
+    //                 'ssl_get_token' => 'Y',
+    //             ]);
+
+    //         // Convert response to array
+    //         $data = $response->json();
+
+    //         // Check if token exists
+    //         if (!isset($data['ssl_txn_auth_token'])) {
+    //             return response()->json([
+    //                 'error' => 'Token not received from Elavon',
+    //                 'response' => $data
+    //             ], 400);
+    //         }
+
+    //         // Return token
+    //         return response()->json([
+    //             'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'error' => 'Request failed: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
 
     public function getConvergePayIp()
