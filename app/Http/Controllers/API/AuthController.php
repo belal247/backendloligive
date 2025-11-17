@@ -63,7 +63,7 @@ class AuthController extends Controller
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ])
                 ->asForm()
-                ->post('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
+                ->get('https://hpp.na.elavonpayments.com/hosted-payments/transaction_token', [
                     'ssl_account_id' => '2693813',
                     'ssl_user_id' => '8045256156web',
                     'ssl_pin' => 'WVVN6XVVOOF92M73QP4GPV2CJRVMON907KCR3Z2NUZCEEG4PDIR7TJEGNR9VL4VW',
