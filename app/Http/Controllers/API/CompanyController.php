@@ -339,6 +339,7 @@ class CompanyController extends Controller
                     'name' => $company->name,
                     'alias' => $company->alias,
                     'logo' => $company->logo,
+                    'isVideo'=>$company->isVideo,
                     'mainImage' => $company->main_image,
                     'welcomeText' => $company->welcome_text,
                     'testimonyText' => $company->testimony_text,
