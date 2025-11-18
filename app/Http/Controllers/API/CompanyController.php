@@ -19,7 +19,7 @@ class CompanyController extends Controller
             'org_key_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'alias' => 'required|string|max:255',
-            'logo' => 'nullable|file|image|mimes:jpg,jpeg,png,gif,svg|max:2048',
+            'logo' => 'nullable|file',
             'isVideo' => 'required|string', // frontend sends "true" or "false"
             'mainImage' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,mp4,mov|max:10240',
             'welcomeText' => 'nullable|string|max:1000',
