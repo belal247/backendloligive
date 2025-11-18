@@ -21,7 +21,7 @@ class CompanyController extends Controller
             'alias' => 'required|string|max:255',
             'logo' => 'nullable|file',
             'isVideo' => 'required|string', // frontend sends "true" or "false"
-            'mainImage' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,mp4,mov|max:10240',
+            'mainImage' => 'nullable|file',
             'welcomeText' => 'nullable|string|max:1000',
             'testimonyText' => 'nullable|string|max:1000',
             'aboutUsText' => 'nullable|string|max:2000',
