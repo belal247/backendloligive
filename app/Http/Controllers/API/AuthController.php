@@ -60,7 +60,7 @@ class AuthController extends Controller
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ])
                 ->asForm()
-                ->post("https://hpp.na.elavonpayments.com/hosted-payments/transaction_token", [
+                ->post("https://api.convergepay.com/hosted-payments/transaction_token", [
                     'ssl_account_id' => "2693813",          // Account ID
                     'ssl_user_id' => "apiuser286837",    // User ID
                     'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3", // PIN
