@@ -19,15 +19,68 @@ class CompanyController extends Controller
             'org_key_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'alias' => 'required|string|max:255',
-            'logo' => 'nullable|file',
+            'logo' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->hasFile('logo')) {
+                        // Optionally, you can check mime types
+                    } elseif (!empty($value) && !filter_var($value, FILTER_VALIDATE_URL)) {
+                        $fail("$attribute must be a valid file or URL.");
+                    }
+                }
+            ],
             'isVideo' => 'required|string', // frontend sends "true" or "false"
-            'mainImage' => 'nullable|file|max:204800',
+            'mainImage' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->hasFile('mainImage')) {
+                        $file = $request->file('mainImage');
+                        if ($file->getSize() > 204800 * 1024) { // size in bytes
+                            $fail("$attribute may not be greater than 200MB.");
+                        }
+                    } elseif (!empty($value) && !filter_var($value, FILTER_VALIDATE_URL)) {
+                        $fail("$attribute must be a valid file or URL.");
+                    }
+                }
+            ],
             'welcomeText' => 'nullable|string|max:1000',
             'testimonyText' => 'nullable|string|max:1000',
             'aboutUsText' => 'nullable|string|max:2000',
-            'aboutUsImage' => 'nullable|file|mimes:jpg,jpeg,png,gif,svg,mp4,mov|max:10240',
+            'aboutUsImage' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->hasFile('aboutUsImage')) {
+                        $file = $request->file('aboutUsImage');
+                        $allowedMimes = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'mp4', 'mov'];
+                        if (!in_array($file->extension(), $allowedMimes)) {
+                            $fail("$attribute must be a file of type: " . implode(', ', $allowedMimes));
+                        }
+                        if ($file->getSize() > 10240 * 1024) {
+                            $fail("$attribute may not be greater than 10MB.");
+                        }
+                    } elseif (!empty($value) && !filter_var($value, FILTER_VALIDATE_URL)) {
+                        $fail("$attribute must be a valid file or URL.");
+                    }
+                }
+            ],
             'donationMessage' => 'nullable|string|max:1000',
-            'videoUrl' => 'nullable|file|mimes:mp4,mov,avi|max:51200',
+            'videoUrl' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->hasFile('videoUrl')) {
+                        $file = $request->file('videoUrl');
+                        $allowedMimes = ['mp4', 'mov', 'avi'];
+                        if (!in_array($file->extension(), $allowedMimes)) {
+                            $fail("$attribute must be a video file of type: " . implode(', ', $allowedMimes));
+                        }
+                        if ($file->getSize() > 51200 * 1024) {
+                            $fail("$attribute may not be greater than 50MB.");
+                        }
+                    } elseif (!empty($value) && !filter_var($value, FILTER_VALIDATE_URL)) {
+                        $fail("$attribute must be a valid file or URL.");
+                    }
+                }
+            ],
             'contactInfo' => 'nullable|array',
             'contactInfo.address' => 'nullable|string|max:500',
             'contactInfo.phone' => 'nullable|string|max:20',
@@ -35,6 +88,7 @@ class CompanyController extends Controller
             'purpose_reason' => 'nullable|array',
             'purpose_reason.*' => 'string|max:500'
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([
@@ -279,7 +333,7 @@ class CompanyController extends Controller
                     'name' => $company->name,
                     'alias' => $company->alias,
                     'logo' => $company->logo,
-                    'isVideo'=>$company->isVideo,
+                    'isVideo' => $company->isVideo,
                     'mainImage' => $company->main_image,
                     'welcomeText' => $company->welcome_text,
                     'testimonyText' => $company->testimony_text,
@@ -340,7 +394,7 @@ class CompanyController extends Controller
                     'name' => $company->name,
                     'alias' => $company->alias,
                     'logo' => $company->logo,
-                    'isVideo'=>$company->isVideo,
+                    'isVideo' => $company->isVideo,
                     'mainImage' => $company->main_image,
                     'welcomeText' => $company->welcome_text,
                     'testimonyText' => $company->testimony_text,
