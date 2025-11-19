@@ -61,15 +61,17 @@ class AuthController extends Controller
                 ])
                 ->asForm()
                 ->post("https://api.convergepay.com/hosted-payments", [
-                    'ssl_account_id' => env('ELAVON_ACCOUNT_ID'), // Move creds to .env
-                    'ssl_user_id' => env('ELAVON_USER_ID'),
-                    'ssl_pin' => env('ELAVON_PIN'),
+                    'ssl_account_id' => "2693813", // Account ID
+                    'ssl_user_id' => "apiuser286837", // User ID
+                    'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3", // PIN
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $request->amount,
                     'ssl_get_token' => 'Y',
                 ]);
 
             $body = $response->json();
+
+            return response()->json($body);
 
             if (!isset($body['transaction_token'])) {
                 return back()->with('error', 'Unable to generate token: ' . json_encode($body));
@@ -84,6 +86,7 @@ class AuthController extends Controller
             return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
+
 
 
     // public function getTransactionToken(Request $request)
