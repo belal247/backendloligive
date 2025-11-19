@@ -42,52 +42,94 @@ class AuthController extends Controller
         //return $response->body();
         return response($response->body())->header('Content-Type', 'text/html');
     }
-
-
-    public function getTransactionToken(Request $request)
+    public function generateToken(Request $request)
     {
+        // Validate the amount
         $request->validate([
             'amount' => 'required|numeric|min:0.50',
         ]);
 
         try {
+            // POST request to generate transaction token
             $response = Http::withOptions([
                 'max_redirects' => 10,
-                'timeout' => 0,
-                'version' => CURL_HTTP_VERSION_1_1,
+                'timeout' => 30,
+                'verify' => false, // only if needed, otherwise remove
             ])
                 ->withHeaders([
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ])
                 ->asForm()
-                ->post("https://api.convergepay.com/hosted-payments/transaction_token", [
-                    'ssl_account_id' => "2693813",          // Account ID
-                    'ssl_user_id' => "apiuser286837",    // User ID
-                    'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3", // PIN
+                ->post("https://api.convergepay.com/hosted-payments", [
+                    'ssl_account_id' => env('ELAVON_ACCOUNT_ID'), // Move creds to .env
+                    'ssl_user_id' => env('ELAVON_USER_ID'),
+                    'ssl_pin' => env('ELAVON_PIN'),
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $request->amount,
                     'ssl_get_token' => 'Y',
                 ]);
 
-            $data = $response->json();
+            $body = $response->json();
 
-            if (!isset($data['ssl_txn_auth_token'])) {
-                return response()->json([
-                    'error' => 'Token not received from Elavon',
-                    'response' => $data
-                ], 400);
+            if (!isset($body['transaction_token'])) {
+                return back()->with('error', 'Unable to generate token: ' . json_encode($body));
             }
 
-            return response()->json([
-                'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
-            ]);
+            $token = $body['transaction_token'];
+
+            // Redirect user to Hosted Payment Page
+            return redirect()->away("https://hpp.na.elavonpayments.com/hosted-payments/?transaction_token={$token}");
 
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Request failed: ' . $e->getMessage()
-            ], 500);
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
+
+
+    // public function getTransactionToken(Request $request)
+    // {
+    //     $request->validate([
+    //         'amount' => 'required|numeric|min:0.50',
+    //     ]);
+
+    //     try {
+    //         $response = Http::withOptions([
+    //             'max_redirects' => 10,
+    //             'timeout' => 0,
+    //             'version' => CURL_HTTP_VERSION_1_1,
+    //         ])
+    //             ->withHeaders([
+    //                 'Content-Type' => 'application/x-www-form-urlencoded',
+    //             ])
+    //             ->asForm()
+    //             ->post("https://api.convergepay.com/hosted-payments/transaction_token", [
+    //                 'ssl_account_id' => "2693813",          // Account ID
+    //                 'ssl_user_id' => "apiuser286837",    // User ID
+    //                 'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3", // PIN
+    //                 'ssl_transaction_type' => 'ccsale',
+    //                 'ssl_amount' => $request->amount,
+    //                 'ssl_get_token' => 'Y',
+    //             ]);
+
+    //         $data = $response->json();
+
+    //         if (!isset($data['ssl_txn_auth_token'])) {
+    //             return response()->json([
+    //                 'error' => 'Token not received from Elavon',
+    //                 'response' => $data
+    //             ], 400);
+    //         }
+
+    //         return response()->json([
+    //             'ssl_txn_auth_token' => $data['ssl_txn_auth_token']
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'error' => 'Request failed: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
 
     // public function getTransactionToken(Request $request)
