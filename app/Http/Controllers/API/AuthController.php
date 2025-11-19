@@ -60,10 +60,10 @@ class AuthController extends Controller
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ])
                 ->asForm()
-                ->post(env('ELAVON_URL'), [
-                    'ssl_account_id' => env('ELAVON_ACCOUNT_ID'),
-                    'ssl_user_id' => env('ELAVON_USER_ID'),
-                    'ssl_pin' => env('ELAVON_PIN'),
+                ->post("https://hpp.na.elavonpayments.com/hosted-payments/transaction_token", [
+                    'ssl_account_id' => "2693813",          // Account ID
+                    'ssl_user_id' => "apiuser286837",    // User ID
+                    'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3", // PIN
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $request->amount,
                     'ssl_get_token' => 'Y',
