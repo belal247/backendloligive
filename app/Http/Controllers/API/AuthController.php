@@ -44,48 +44,50 @@ class AuthController extends Controller
     }
     public function getTransactionToken(Request $request)
     {
-        // Validate the amount
         $request->validate([
-            'amount' => 'required',
+            'amount' => 'required|numeric|min:1',
         ]);
 
         try {
-            // POST request to generate transaction token
+            $amount = number_format($request->amount, 2, '.', '');
+
             $response = Http::withOptions([
-                'max_redirects' => 10,
                 'timeout' => 30,
-                'verify' => false, // only if needed, otherwise remove
+                'verify' => false, // remove in production
             ])
                 ->withHeaders([
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ])
                 ->asForm()
-                ->post("https://api.convergepay.com/hosted-payments", [
-                    'ssl_account_id' => "2693813", // Account ID
-                    'ssl_user_id' => "apiuser286837", // User ID
-                    'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3", // PIN
+                ->post("https://api.convergepay.com/hosted-payments/transaction_token", [
+                    'ssl_account_id' => "2693813",
+                    'ssl_user_id' => "apiuser286837",
+                    'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3",
                     'ssl_transaction_type' => 'ccsale',
-                    'ssl_amount' => $request->amount,
-                    'ssl_get_token' => 'Y',
+                    'ssl_amount' => $amount,
+                    'ssl_get_token' => 'Y'
                 ]);
 
-            $body = $response->json();
+            $token = $response->body(); // ⬅ Elavon returns plain TEXT
 
-            return response()->json($body);
-
-            if (!isset($body['transaction_token'])) {
-                return back()->with('error', 'Unable to generate token: ' . json_encode($body));
+            if ($response->failed() || !$token) {
+                return response()->json([
+                    "error" => "Failed to generate transaction token",
+                    "gateway_response" => $response->body()
+                ], 500);
             }
 
-            $token = $body['transaction_token'];
-
-            // Redirect user to Hosted Payment Page
-            return redirect()->away("https://api.convergepay.com/hosted-payments/hosted-payments/?ssl_txn_auth_token={$token}");
+            return response()->json([
+                "token" => trim($token) // send back to React
+            ]);
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Error: ' . $e->getMessage());
+            return response()->json([
+                "error" => $e->getMessage()
+            ], 500);
         }
     }
+
 
 
 
