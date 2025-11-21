@@ -42,11 +42,11 @@ class AuthController extends Controller
         //return $response->body();
         return response($response->body())->header('Content-Type', 'text/html');
     }
-    public function generateToken(Request $request)
+    public function getTransactionToken(Request $request)
     {
         // Validate the amount
         $request->validate([
-            'amount' => 'required|numeric|min:0.50',
+            'amount' => 'required',
         ]);
 
         try {
@@ -80,7 +80,7 @@ class AuthController extends Controller
             $token = $body['transaction_token'];
 
             // Redirect user to Hosted Payment Page
-            return redirect()->away("https://hpp.na.elavonpayments.com/hosted-payments/?transaction_token={$token}");
+            return redirect()->away("https://api.convergepay.com/hosted-payments/hosted-payments/?ssl_txn_auth_token={$token}");
 
         } catch (\Exception $e) {
             return back()->with('error', 'Error: ' . $e->getMessage());
