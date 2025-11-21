@@ -78,7 +78,7 @@ class AuthController extends Controller
             }
 
             return response()->json([
-                "token" => trim($token) // send back to React
+                "ssl_txn_auth_token" => trim($token) // send back to React
             ]);
 
         } catch (\Exception $e) {
