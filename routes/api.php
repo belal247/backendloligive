@@ -16,12 +16,15 @@ use App\Http\Controllers\API\QrCodeController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\CompanyController;
 use App\Http\Controllers\API\OrganizationController;
-
+use App\Http\Controllers\Paymentdetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/orgs', [OrganizationController::class, 'index']);
+
+Route::post('/elavon/success', [Paymentdetails::class, 'success']);
+
 
 Route::post('/companies', [CompanyController::class, 'store']);
 Route::post('/companies/show', [CompanyController::class, 'show']);

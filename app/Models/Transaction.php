@@ -10,20 +10,21 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'org_key_id',
-        'tid',
         'name',
+        'comment',
+        'org_id',
+        'paymentmethod',
+        'purpose',
         'amount',
-        'bank_fee',
-        'amount_received',
-        'payment_method',
-        'purpose_reason',
-        'comment'
+        'txn_id',
+        'status',
+        'is_approved',
+        'raw_payload'
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
-    ];   
+    ];
 }
