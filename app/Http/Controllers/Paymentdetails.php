@@ -16,22 +16,26 @@ class Paymentdetails extends Controller
         $approved = $data['approved'] ?? false;
         $status = $approved ? 'APPROVED' : 'DECLINED';
 
-        $fields = $data['paymentReturnFields']['approveFields'] ?? [];
-        if (empty($fields)) {
-            $fields = $data['paymentReturnFields']['declineFields'] ?? [];
+        // Pick the correct fields based on approved status
+        $fields = [];
+        if (isset($data['paymentReturnFields'])) {
+            if (!empty($data['paymentReturnFields']['approveFields']) && $approved) {
+                $fields = $data['paymentReturnFields']['approveFields'];
+            } elseif (!empty($data['paymentReturnFields']['declineFields'])) {
+                $fields = $data['paymentReturnFields']['declineFields'];
+            }
         }
 
         $custom = [];
         foreach ($fields as $f) {
-            if (isset($f['name'], $f['value'])) {
-                $custom[$f['name']] = $f['value'];
-            }
+            $custom[$f['name']] = $f['value'];
         }
 
+        // Save transaction
         try {
             $payment = Transaction::create([
                 'name' => $custom['name'] ?? null,
-                'comment' => $data['responseFields']['ssl_result_message'] ?? null,
+                'comment' => $custom['ssl_result_message'] ?? $data['responseFields']['ssl_result_message'] ?? null,
                 'org_id' => $custom['org_id'] ?? null,
                 'paymentmethod' => $custom['paymentmethod'] ?? null,
                 'purpose' => $custom['purpose'] ?? null,
@@ -48,14 +52,13 @@ class Paymentdetails extends Controller
                 'data' => $payment
             ]);
         } catch (\Exception $e) {
-            // Log the exact error
-            \Log::error('Transaction save failed: ' . $e->getMessage(), ['payload' => $data]);
             return response()->json([
                 'success' => false,
-                'message' => 'Server error: could not save transaction'
-            ], 500);
+                'message' => "Server error: " . $e->getMessage()
+            ]);
         }
     }
+
 
 
 
