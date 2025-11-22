@@ -21,6 +21,7 @@ class AuthController extends Controller
 {
     public function processPayment(Request $request)
     {
+        \Log::info('Elavon Payment Response:', $request->all());
         // Validate that token is present in the request
         $request->validate([
             'ssl_txn_auth_token' => 'required|string'
