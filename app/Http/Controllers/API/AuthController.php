@@ -66,9 +66,8 @@ class AuthController extends Controller
                     'ssl_pin' => "YXQXYK01X9W2SQ2TX65524D2EMKHRDGQ5KMIH32PV26FTZP7274244JCKBEQYGS3",
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $amount,
-                    'ssl_receipt_link_url' => 'https://api.lolligive.com/api/elavon/success',
-                    'ssl_result_format' => 'JSON',
-                    'ssl_get_token' => 'Y'
+                    'ssl_get_token' => 'Y',
+                    'ssl_webhook' => 'https://api.lolligive.com/api/elavon/success'
                 ]);
 
             $token = $response->body(); // ⬅ Elavon returns plain TEXT
