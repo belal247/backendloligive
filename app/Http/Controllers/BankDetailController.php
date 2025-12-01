@@ -24,7 +24,7 @@ class BankDetailController extends Controller
 
         if ($request->org_id) {
             // UPDATE
-            $bankDetail = BankDetail::find($request->org_id);
+             $bankDetail = BankDetail::where('org_id', $request->org_id)->first();
 
             if (!$bankDetail) {
                 return response()->json([
