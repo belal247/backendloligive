@@ -20,10 +20,22 @@ use App\Http\Controllers\Paymentdetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\BankDetailController;
+use App\Http\Controllers\WithDrawController;
 
 Route::get('/orgs', [OrganizationController::class, 'index']);
 
 Route::post('/elavon/success', [Paymentdetails::class, 'success']);
+
+Route::post('/bank-details', [BankDetailController::class, 'store']);
+Route::get('/bank-details/{org_id}', [BankDetailController::class, 'show']); 
+Route::post('/withdrawl-transaction', [WithDrawController::class, 'store']);
+
+Route::get('/bank-details', [BankDetailController::class, 'index']);
+Route::get('/withdrawl-details', [WithDrawController::class, 'index']);
+Route::put('/withdrawals/status', [WithDrawController::class, 'updateWithdrawalStatus']);
+
+
 
 
 Route::post('/companies', [CompanyController::class, 'store']);

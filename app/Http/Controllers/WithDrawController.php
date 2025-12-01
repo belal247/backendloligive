@@ -1,0 +1,98 @@
+<?php
+
+namespace App\Http\Controllers;
+use App\Models\BankDetail;
+use App\Models\Withdrawal;
+use Illuminate\Http\Request;
+
+use App\Mail\WithdrawalRequestMail;
+use Illuminate\Support\Facades\Mail;
+
+class WithDrawController extends Controller
+{
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'org_id' => 'required|string',
+            'amount' => 'required|numeric'
+        ]);
+
+        $bank = BankDetail::where('org_id', $data['org_id'])->first();
+
+        if (!$bank) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bank details not found for this org_id'
+            ], 404);
+        }
+
+        $saveData = [
+            'org_id' => $data['org_id'],
+            'amount' => $data['amount'],
+            'isZelle' => $bank->isZelle,
+            'withdrawal_status' => 0 // default
+        ];
+
+        if ($bank->isZelle) {
+            $saveData['zelle_name'] = $bank->zelle_name;
+            $saveData['zelle_email'] = $bank->zelle_email;
+            $saveData['zelle_phone'] = $bank->zelle_phone;
+        } else {
+            $saveData['bank_name'] = $bank->bank_name;
+            $saveData['account_no'] = $bank->account_no;
+            $saveData['account_holder_name'] = $bank->account_holder_name;
+            $saveData['iban'] = $bank->iban;
+            $saveData['branch_address'] = $bank->branch_address;
+        }
+
+        $withdrawal = Withdrawal::create($saveData);
+
+         Mail::to('aliakram4731@gmail.com')->send(new WithdrawalRequestMail($withdrawal));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal request created successfully',
+            'data' => $withdrawal
+        ]);
+    }
+
+    public function index()
+    {
+        $data = Withdrawal::orderBy('id', 'DESC')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
+    public function updateWithdrawalStatus(Request $request)
+    {
+        $data = $request->validate([
+            'account_no' => 'required|string',
+            'withdrawal_status' => 'required|integer'  // 0 = pending, 1 = completed
+        ]);
+
+        // Find record by account number
+        $withdrawal = Withdrawal::where('account_no', $request->account_no)->first();
+
+        if (!$withdrawal) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Record not found for this account number'
+            ], 404);
+        }
+
+        // Update only the status
+        $withdrawal->update([
+            'withdrawal_status' => $request->withdrawal_status
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal status updated successfully',
+            'data' => $withdrawal
+        ]);
+    }
+
+}
