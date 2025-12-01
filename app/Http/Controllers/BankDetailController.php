@@ -9,8 +9,7 @@ class BankDetailController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'id' => 'nullable|integer',              // for update
-            'org_id' => 'nullable|integer',
+            'org_id' => 'required|string',   // Make org_id required for both create & update
             'bank_name' => 'nullable|string',
             'account_no' => 'nullable|string',
             'account_holder_name' => 'nullable|string',
@@ -22,17 +21,11 @@ class BankDetailController extends Controller
             'isZelle' => 'nullable|boolean',
         ]);
 
-        if ($request->org_id) {
-            // UPDATE
-             $bankDetail = BankDetail::where('org_id', $request->org_id)->first();
+        // Try to find existing record by org_id
+        $bankDetail = BankDetail::where('org_id', $request->org_id)->first();
 
-            if (!$bankDetail) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Record not found'
-                ], 404);
-            }
-
+        if ($bankDetail) {
+            // UPDATE existing record
             $bankDetail->update($data);
 
             return response()->json([
@@ -41,7 +34,7 @@ class BankDetailController extends Controller
                 'data' => $bankDetail
             ]);
         } else {
-            // CREATE
+            // CREATE new record
             $bankDetail = BankDetail::create($data);
 
             return response()->json([
@@ -51,6 +44,7 @@ class BankDetailController extends Controller
             ]);
         }
     }
+
 
     public function show($org_id)
     {
