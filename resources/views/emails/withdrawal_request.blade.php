@@ -27,29 +27,46 @@
                                     <td>${{ number_format($withdrawal->amount, 2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="font-weight: bold; color: #555;">Account Name:</td>
-                                    <td>{{ $withdrawal->account_holder_name }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold; color: #555;">Account Number:</td>
-                                    <td>{{ $withdrawal->account_no }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold; color: #555;">Bank Name:</td>
-                                    <td>{{ $withdrawal->bank_name }}</td>
-                                </tr>
-                                <tr>
                                     <td style="font-weight: bold; color: #555;">Is Zelle:</td>
                                     <td>{{ $withdrawal->isZelle ? 'Yes' : 'No' }}</td>
                                 </tr>
-                                <tr>
-                                    <td style="font-weight: bold; color: #555;">IBAN:</td>
-                                    <td>{{ $withdrawal->iban }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: bold; color: #555;">Branch:</td>
-                                    <td>{{ $withdrawal->branch_address }}</td>
-                                </tr>
+
+                                @if($withdrawal->isZelle)
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Zelle Name:</td>
+                                        <td>{{ $withdrawal->zelle_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Zelle Email:</td>
+                                        <td>{{ $withdrawal->zelle_email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Zelle Phone:</td>
+                                        <td>{{ $withdrawal->zelle_phone }}</td>
+                                    </tr>
+                                @else
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Account Name:</td>
+                                        <td>{{ $withdrawal->account_holder_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Account Number:</td>
+                                        <td>{{ $withdrawal->account_no }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Bank Name:</td>
+                                        <td>{{ $withdrawal->bank_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">IBAN:</td>
+                                        <td>{{ $withdrawal->iban }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; color: #555;">Branch:</td>
+                                        <td>{{ $withdrawal->branch_address }}</td>
+                                    </tr>
+                                @endif
+
                             </table>
                         </td>
                     </tr>

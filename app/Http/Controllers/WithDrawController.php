@@ -47,7 +47,7 @@ class WithDrawController extends Controller
 
         $withdrawal = Withdrawal::create($saveData);
 
-         Mail::to('aliakram4731@gmail.com')->send(new WithdrawalRequestMail($withdrawal));
+        Mail::to('support@lolligive.com')->send(new WithdrawalRequestMail($withdrawal));
 
         return response()->json([
             'success' => true,
@@ -66,6 +66,18 @@ class WithDrawController extends Controller
         ]);
     }
 
+    public function getByOrgId($org_id)
+    {
+        // Fetch withdrawals by org_id in descending order
+        $data = Withdrawal::where('org_id', $org_id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
     public function updateWithdrawalStatus(Request $request)
     {
         $data = $request->validate([

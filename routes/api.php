@@ -35,6 +35,9 @@ Route::get('/bank-details', [BankDetailController::class, 'index']);
 Route::get('/withdrawl-details', [WithDrawController::class, 'index']);
 Route::put('/withdrawals/status', [WithDrawController::class, 'updateWithdrawalStatus']);
 
+Route::get('/withdrawals/org/{org_id}', [WithDrawController::class, 'getByOrgId']);
+
+
 
 
 
