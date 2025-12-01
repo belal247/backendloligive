@@ -78,31 +78,32 @@ class WithDrawController extends Controller
             'data' => $data
         ]);
     }
+
+
     public function updateWithdrawalStatus(Request $request)
     {
-        $data = $request->validate([
-            'account_no' => 'required|string',
-            'withdrawal_status' => 'required|integer'  // 0 = pending, 1 = completed
-        ]);
+        $data = $request->validate(['org_id' => 'required|integer', 'id' => 'required|integer', 'withdrawal_status' => 'required|integer',]);// Find the withdrawal record by org_id and id
+        $withdrawal = Withdrawal::where('org_id', $data['org_id'])
+            ->where('id', $data['id'])
+            ->first();
 
-        // Find record by account number
-        $withdrawal = Withdrawal::where('account_no', $request->account_no)->first();
-
+        // If record not found
         if (!$withdrawal) {
             return response()->json([
                 'success' => false,
-                'message' => 'Record not found for this account number'
-            ], 404);
+                'message' => 'Record not found for this org_id and id.'
+            ]);
         }
 
-        // Update only the status
+        // Update the withdrawal status
         $withdrawal->update([
-            'withdrawal_status' => $request->withdrawal_status
+            'withdrawal_status' => $data['withdrawal_status']
         ]);
 
+        // Return response
         return response()->json([
             'success' => true,
-            'message' => 'Withdrawal status updated successfully',
+            'message' => 'Withdrawal status updated successfully.',
             'data' => $withdrawal
         ]);
     }
