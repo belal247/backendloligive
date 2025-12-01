@@ -82,7 +82,7 @@ class WithDrawController extends Controller
 
     public function updateWithdrawalStatus(Request $request)
     {
-        $data = $request->validate(['org_id' => 'required|integer', 'id' => 'required|integer', 'withdrawal_status' => 'required|integer',]);// Find the withdrawal record by org_id and id
+        $data = $request->validate(['org_id' => 'required|string', 'id' => 'required|integer', 'withdrawal_status' => 'required|integer',]);// Find the withdrawal record by org_id and id
         $withdrawal = Withdrawal::where('org_id', $data['org_id'])
             ->where('id', $data['id'])
             ->first();
