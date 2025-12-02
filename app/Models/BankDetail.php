@@ -18,4 +18,11 @@ class BankDetail extends Model
         'zelle_phone',
         'isZelle',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'org_id', 'org_key_id');
+    }
+
+
 }

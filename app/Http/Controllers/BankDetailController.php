@@ -58,11 +58,14 @@ class BankDetailController extends Controller
 
     public function index()
     {
-        $data = BankDetail::orderBy('id', 'DESC')->get();
+        $data = BankDetail::with(['user.businessProfile'])
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return response()->json([
             'success' => true,
             'data' => $data
         ]);
     }
+
 }

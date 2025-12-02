@@ -10,7 +10,7 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-         'name',
+        'name',
         'comment',
         'org_id',
         'paymentmethod',
@@ -27,4 +27,10 @@ class Transaction extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'org_id', 'org_key_id');
+    }
+
 }

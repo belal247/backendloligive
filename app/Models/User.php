@@ -53,6 +53,8 @@ class User extends Authenticatable implements JWTSubject
         'updated_at' => 'datetime'
     ];
 
+    
+
 
     public function businessProfile()
     {

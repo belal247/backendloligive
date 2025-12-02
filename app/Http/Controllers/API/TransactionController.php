@@ -37,7 +37,7 @@ class TransactionController extends Controller
 
                 // Verify if org_key_id exists in users table
                 $userExists = User::where('org_key_id', $orgKeyId)->exists();
-                
+
                 if (!$userExists) {
                     return response()->json([
                         'success' => false,
@@ -122,7 +122,7 @@ class TransactionController extends Controller
 
             // Verify if org_key_id exists in users table
             $userExists = User::where('org_key_id', $orgKeyId)->exists();
-            
+
             if (!$userExists) {
                 return response()->json([
                     'success' => false,
@@ -231,10 +231,9 @@ class TransactionController extends Controller
     public function all(Request $request): JsonResponse
     {
         try {
-            // Get all transactions without any filters
-            $transactions = Transaction::all();
+            // Load user and business profile
+            $transactions = Transaction::with(['user.businessProfile'])->get();
 
-            // Check if any transactions exist
             if ($transactions->isEmpty()) {
                 return response()->json([
                     'success' => true,
@@ -260,4 +259,5 @@ class TransactionController extends Controller
             ], 500);
         }
     }
+
 }

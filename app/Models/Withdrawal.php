@@ -18,6 +18,18 @@ class Withdrawal extends Model
         'zelle_email',
         'zelle_phone',
         'isZelle',
-        'withdrawal_status', 
+        'withdrawal_status',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'org_id', 'org_key_id');
+    }
+
+
+    public function businessProfile()
+    {
+        return $this->belongsTo(BusinessProfile::class, 'org_id', 'org_key_id');
+    }
+
 }

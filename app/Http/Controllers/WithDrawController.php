@@ -58,13 +58,17 @@ class WithDrawController extends Controller
 
     public function index()
     {
-        $data = Withdrawal::orderBy('id', 'DESC')->get();
+        $data = Withdrawal::with(['user.businessProfile']) // eager load user + business profile
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return response()->json([
             'success' => true,
             'data' => $data
         ]);
     }
+
+
 
     public function getByOrgId($org_id)
     {
