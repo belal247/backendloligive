@@ -67,7 +67,7 @@ class AuthController extends Controller
                     'ssl_transaction_type' => 'ccsale',
                     'ssl_amount' => $amount,
                     'ssl_get_token' => 'Y',
-                    'ssl_webhook' => 'https://api.lolligive.com/api/elavon/success'
+                    'ssl_notificationURL' => "https://api.lolligive.com/api/elavon/success",
                 ]);
 
             $token = $response->body(); // ⬅ Elavon returns plain TEXT
