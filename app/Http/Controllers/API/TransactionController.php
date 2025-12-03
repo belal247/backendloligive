@@ -136,7 +136,7 @@ class TransactionController extends Controller
             $tid = 'TXN' . $nextId;
 
             // Check if TID already exists (though very unlikely)
-            while (Transaction::where('tid', $tid)->exists()) {
+            while (Transaction::where('txn_id', $tid)->exists()) {
                 $nextId++;
                 $tid = 'TXN' . $nextId;
             }
