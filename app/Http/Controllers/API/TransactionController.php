@@ -147,29 +147,27 @@ class TransactionController extends Controller
 
             // Create transaction
             $transaction = Transaction::create([
-                'org_key_id' => $orgKeyId,
-                'txn_id' => $tid,
+                'org_id' => $orgKeyId,             // was org_key_id
+                'txn_id' => $tid,                  // keep as is
                 'name' => $name,
                 'amount' => $amount,
-                'bank_fee' => $bankFee,
-                'amount_received' => $amountReceived,
-                'payment_method' => $paymentMethod,
-                'purpose_reason' => $purposeReason,
-                'comment' => $comment
+                'paymentmethod' => $paymentMethod, // was payment_method
+                'purpose' => $purposeReason,       // was purpose_reason
+                'comment' => $comment,
+                'status' => 'pending',             // optional default
+                'is_approved' => 0,                // optional default
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Transaction created successfully',
                 'data' => [
-                    'org_key_id' => $transaction->org_key_id,
-                    'tid' => $transaction->tid,
+                    'org_id' => $transaction->org_id,
+                    'txn_id' => $transaction->txn_id,
                     'name' => $transaction->name,
                     'amount' => $transaction->amount,
-                    'bankFee' => $transaction->bank_fee,
-                    'amountReceived' => $transaction->amount_received,
-                    'paymentMethod' => $transaction->payment_method,
-                    'purpose_reason' => $transaction->purpose_reason,
+                    'paymentmethod' => $transaction->paymentmethod,
+                    'purpose' => $transaction->purpose,
                     'comment' => $transaction->comment,
                     'created_at' => $transaction->created_at,
                 ]
