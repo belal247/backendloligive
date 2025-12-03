@@ -148,7 +148,7 @@ class TransactionController extends Controller
             // Create transaction
             $transaction = Transaction::create([
                 'org_key_id' => $orgKeyId,
-                'tid' => $tid,
+                'txn_id' => $tid,
                 'name' => $name,
                 'amount' => $amount,
                 'bank_fee' => $bankFee,
