@@ -202,7 +202,7 @@ class TransactionController extends Controller
         try {
             $orgKeyId = $request->input('org_key_id');
 
-            $transaction = Transaction::where('org_key_id', $orgKeyId)->get();
+            $transaction = Transaction::where('org_id', $orgKeyId)->get();
 
             if (!$transaction) {
                 return response()->json([
