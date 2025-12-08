@@ -19,7 +19,9 @@ class Transaction extends Model
         'txn_id',
         'status',
         'is_approved',
-        'raw_payload'
+        'raw_payload',
+        'bank_fees', 
+        'date_time'
     ];
 
     protected $casts = [

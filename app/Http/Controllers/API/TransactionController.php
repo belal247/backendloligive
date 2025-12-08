@@ -91,7 +91,9 @@ class TransactionController extends Controller
 
     /**
      * Create a new transaction
+     *
      */
+
     public function store(Request $request): JsonResponse
     {
         // Validate the request
@@ -101,7 +103,8 @@ class TransactionController extends Controller
             'name' => 'required|string|max:255',
             'purpose_reason' => 'required|string|max:255',
             'comment' => 'nullable|string',
-            'payment_method' => 'required|string|max:100'
+            'payment_method' => 'required|string|max:100',
+            'date_time' => 'required|date'  // NEW
         ]);
 
         if ($validator->fails()) {
@@ -113,64 +116,53 @@ class TransactionController extends Controller
         }
 
         try {
-            $orgKeyId = $request->input('org_key_id');
-            $amount = $request->input('amount');
-            $name = $request->input('name');
-            $purposeReason = $request->input('purpose_reason');
-            $comment = $request->input('comment');
-            $paymentMethod = $request->input('payment_method');
+            $orgKeyId = $request->org_key_id;
+            $amount = $request->amount;
 
-            // Verify if org_key_id exists in users table
-            $userExists = User::where('org_key_id', $orgKeyId)->exists();
+            // Get date/time from frontend
+            $dateTime = $request->date_time;
 
-            if (!$userExists) {
+            // Verify org exists
+            if (!User::where('org_key_id', $orgKeyId)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Organization key not found'
                 ], 404);
             }
 
-            // Generate unique TID in format TXN1001, TXN1002, etc.
-            $lastTransaction = Transaction::orderBy('id', 'desc')->first();
-            $nextId = $lastTransaction ? $lastTransaction->id + 1 : 1;
+            // Generate TID
+            $last = Transaction::orderBy('id', 'desc')->first();
+            $nextId = $last ? $last->id + 1 : 1;
             $tid = 'TXN' . $nextId;
 
-            // Check if TID already exists (though very unlikely)
             while (Transaction::where('txn_id', $tid)->exists()) {
                 $nextId++;
                 $tid = 'TXN' . $nextId;
             }
 
-            // Calculate bank fee (2.5% of amount)
-            $bankFee = round($amount * 0.025, 2);
-            $amountReceived = round($amount - $bankFee, 2);
+            // Calculate bank fee (3% of amount)
+            $bankFee = round($amount * 0.03, 2);
 
             // Create transaction
             $transaction = Transaction::create([
-                'org_id' => $orgKeyId,             // was org_key_id
-                'txn_id' => $tid,                  // keep as is
-                'name' => $name,
+                'org_id' => $orgKeyId,
+                'txn_id' => $tid,
+                'name' => $request->name,
                 'amount' => $amount,
-                'paymentmethod' => $paymentMethod, // was payment_method
-                'purpose' => $purposeReason,       // was purpose_reason
-                'comment' => $comment,
-                'status' => 'pending',             // optional default
-                'is_approved' => 0,                // optional default
+                'paymentmethod' => $request->payment_method,
+                'purpose' => $request->purpose_reason,
+                'comment' => $request->comment,
+                'status' => 'pending',
+                'bank_fees'=> $bankFee,
+                'date_time'=> $dateTime,
+                'is_approved' => 0,
+
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Transaction created successfully',
-                'data' => [
-                    'org_id' => $transaction->org_id,
-                    'txn_id' => $transaction->txn_id,
-                    'name' => $transaction->name,
-                    'amount' => $transaction->amount,
-                    'paymentmethod' => $transaction->paymentmethod,
-                    'purpose' => $transaction->purpose,
-                    'comment' => $transaction->comment,
-                    'created_at' => $transaction->created_at,
-                ]
+                'data' => $transaction
             ], 201);
 
         } catch (\Exception $e) {
@@ -181,6 +173,97 @@ class TransactionController extends Controller
             ], 500);
         }
     }
+
+
+    // public function store(Request $request): JsonResponse
+    // {
+    //     // Validate the request
+    //     $validator = Validator::make($request->all(), [
+    //         'org_key_id' => 'required|string|max:255',
+    //         'amount' => 'required|numeric|min:0.01',
+    //         'name' => 'required|string|max:255',
+    //         'purpose_reason' => 'required|string|max:255',
+    //         'comment' => 'nullable|string',
+    //         'payment_method' => 'required|string|max:100'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Validation failed',
+    //             'errors' => $validator->errors()
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         $orgKeyId = $request->input('org_key_id');
+    //         $amount = $request->input('amount');
+    //         $name = $request->input('name');
+    //         $purposeReason = $request->input('purpose_reason');
+    //         $comment = $request->input('comment');
+    //         $paymentMethod = $request->input('payment_method');
+
+    //         // Verify if org_key_id exists in users table
+    //         $userExists = User::where('org_key_id', $orgKeyId)->exists();
+
+    //         if (!$userExists) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Organization key not found'
+    //             ], 404);
+    //         }
+
+    //         // Generate unique TID in format TXN1001, TXN1002, etc.
+    //         $lastTransaction = Transaction::orderBy('id', 'desc')->first();
+    //         $nextId = $lastTransaction ? $lastTransaction->id + 1 : 1;
+    //         $tid = 'TXN' . $nextId;
+
+    //         // Check if TID already exists (though very unlikely)
+    //         while (Transaction::where('txn_id', $tid)->exists()) {
+    //             $nextId++;
+    //             $tid = 'TXN' . $nextId;
+    //         }
+
+    //         // Calculate bank fee (2.5% of amount)
+    //         $bankFee = round($amount * 0.025, 2);
+    //         $amountReceived = round($amount - $bankFee, 2);
+
+    //         // Create transaction
+    //         $transaction = Transaction::create([
+    //             'org_id' => $orgKeyId,             // was org_key_id
+    //             'txn_id' => $tid,                  // keep as is
+    //             'name' => $name,
+    //             'amount' => $amount,
+    //             'paymentmethod' => $paymentMethod, // was payment_method
+    //             'purpose' => $purposeReason,       // was purpose_reason
+    //             'comment' => $comment,
+    //             'status' => 'pending',             // optional default
+    //             'is_approved' => 0,                // optional default
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Transaction created successfully',
+    //             'data' => [
+    //                 'org_id' => $transaction->org_id,
+    //                 'txn_id' => $transaction->txn_id,
+    //                 'name' => $transaction->name,
+    //                 'amount' => $transaction->amount,
+    //                 'paymentmethod' => $transaction->paymentmethod,
+    //                 'purpose' => $transaction->purpose,
+    //                 'comment' => $transaction->comment,
+    //                 'created_at' => $transaction->created_at,
+    //             ]
+    //         ], 201);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to create transaction',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Get specific transaction by ID
